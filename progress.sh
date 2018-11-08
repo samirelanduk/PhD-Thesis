@@ -24,7 +24,7 @@ done
 
 counts="$( IFS=$','; echo "${counts[*]}" )"
 times="$( IFS=$','; echo "${times[*]}" )"
-sed -i'.bak' -E "s/counts = \[.+\]/counts = [$counts]/" index.html
-sed -i'.bak' -E "s/times = \[.+\]/times = [$times]/" index.html
+sed -i s/"counts = \[.+\]"/"counts = [$counts]"/g index.html
+sed -i s/"times = \[.+\]"/"times = [$times]"/g index.html
 rm *.bak
 `git checkout master`
