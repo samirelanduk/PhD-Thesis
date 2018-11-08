@@ -13,7 +13,7 @@ commits=($commits)
 counts=()
 for i in "${!commits[@]}"; do
   `git checkout "${commits[i]}" --quiet`
-  counts+=("$(texcount Thesis.tex | grep -E -i -w -oh 'in text\: (\d+)' | cut -d ' ' -f 3)")
+  counts+=("$(texcount Thesis.tex | grep -E -o -i -w 'in text\: (.+)' | cut -d ' ' -f 3)")
 done
 
 `git checkout "${commits[0]}" --quiet`
