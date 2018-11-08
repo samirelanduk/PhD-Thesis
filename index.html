@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="author" content="Sam Ireland">
+  <meta name="description" content="Sam Ireland's Thesis Count">
+  <title>Thesis Word Count</title>
+
+  <script>
+  var counts = [233,233,220,220];
+  var times = ['Date:   Wed Nov 7 23:44:06 2018 +0000','Date:   Mon Nov 5 14:35:17 2018 +0000','Date:   Mon Nov 5 14:27:45 2018 +0000','Date:   Mon Nov 5 14:20:45 2018 +0000'];
+  var data = [[Date.parse(times[times.length - 1].slice(6)), 0]];
+  for (var t = times.length - 1; t >= 0; t--) {
+      data.push([Date.parse(times[t].slice(6)), counts[t]])
+  }
+  data.push([Math.round((new Date()).getTime()), counts[0]])
+  data.reverse();
+  </script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <style>body {
+      max-width: 800px;
+      margin-left: auto; margin-right: auto; margin-top: 20px;
+      padding: 20px;
+      }</style>
+</head>
+
+<body>
+
+<div id="chart"></div>
+<script>
+var chart = Highcharts.chart("chart", {
+    chart: {zoomType: "x"},
+    legend: {enabled: false},
+    title: {text: "Thesis Progress"},
+    subtitle: {text: "Currently: " + counts[0] + " words"},
+    credits: {enabled: false},
+    xAxis: {type: "datetime", title: "Time"},
+    yAxis: {min: 0, title: "Word Count"},
+    series: [{
+        data: data, step: "left", name: "Word Count"
+    }],
+});
+</script>
+
+</body>
+
+</html>
