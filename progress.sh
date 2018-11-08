@@ -27,3 +27,4 @@ times="$( IFS=$','; echo "${times[*]}" )"
 sed -i'.bak' -E "s/counts = \[.+\]/counts = [$counts]/" index.html
 sed -i'.bak' -E "s/times = \[.+\]/times = [$times]/" index.html
 rm *.bak
+`git checkout master`
