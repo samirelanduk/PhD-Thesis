@@ -8,8 +8,8 @@
   <title>Thesis Word Count</title>
 
   <script>
-  var counts = [233,233,220,220];
-  var times = ['Date:   Wed Nov 7 23:44:06 2018 +0000','Date:   Mon Nov 5 14:35:17 2018 +0000','Date:   Mon Nov 5 14:27:45 2018 +0000','Date:   Mon Nov 5 14:20:45 2018 +0000'];
+  var counts = [ ];
+  var times = [ ];
   var data = [[Date.parse(times[times.length - 1].slice(6)), 0]];
   for (var t = times.length - 1; t >= 0; t--) {
       data.push([Date.parse(times[t].slice(6)), counts[t]])
