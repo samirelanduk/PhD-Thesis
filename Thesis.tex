@@ -1,9 +1,14 @@
 %% ----------------------------------------------------------------
 %% Thesis.tex -- MAIN FILE (the one that you compile with LaTeX)
-%% ---------------------------------------------------------------- 
+%% ----------------------------------------------------------------
+
+
 
 % Set up the document
 \documentclass[a4paper, 11pt, oneside]{Style/UCLThesis}  % Use the "UCLThesis" style, based on the ECS Thesis style by Steve Gunn
+
+%TC:macro \cmt [ignore]
+%TC:macro \note [ignore]
 \graphicspath{{Figures/}}  % Location of the graphics files (set up for graphics to be in PDF format)
 
 
@@ -40,6 +45,8 @@
 
 %% ----------------------------------------------------------------
 
+\newcommand{\note}[1]{{\color{red} [*** Comment: #1 ***]}}
+
 \begin{document}
 \frontmatter	  % Begin Roman style (i, ii, iii, iv...) page numbering
 
@@ -74,25 +81,25 @@
 
 I, SAM IRELAND, declare that this thesis titled, `Predicting and Characterising Zinc Metal Binding Sites in Proteins' and the work presented in it are my own. I confirm that:
 
-\begin{itemize} 
+\begin{itemize}
 \item[\tiny{$\blacksquare$}] This work was done wholly or mainly while in candidature for a research degree at this University.
- 
+
 \item[\tiny{$\blacksquare$}] Where any part of this thesis has previously been submitted for a degree or any other qualification at this University or any other institution, this has been clearly stated.
- 
+
 \item[\tiny{$\blacksquare$}] Where I have consulted the published work of others, this is always clearly attributed.
- 
+
 \item[\tiny{$\blacksquare$}] Where I have quoted from the work of others, the source is always given. With the exception of such quotations, this thesis is entirely my own work.
- 
+
 \item[\tiny{$\blacksquare$}] I have acknowledged all main sources of help.
- 
+
 \item[\tiny{$\blacksquare$}] Where the thesis is based on work done by myself jointly with others, I have made clear exactly what was done by others and what I have contributed myself.
 \\
 \end{itemize}
- 
- 
+
+
 Signed:\\
 \rule[1em]{25em}{0.5pt}  % This prints a line for the signature
- 
+
 Date:\\
 \rule[1em]{25em}{0.5pt}  % This prints a line to write the date
 }
@@ -186,7 +193,7 @@ $P$ & power & W (Js$^{-1}$) \\
 $\omega$ & angular frequency & rads$^{-1}$ \\
 }
 
-%% ---------------------------------------------------------------- 
+%% ----------------------------------------------------------------
 % End of the pre-able, contents and lists of things
 % Begin the Dedication page
 
@@ -205,7 +212,7 @@ $\omega$ & angular frequency & rads$^{-1}$ \\
 
 % \includeonly{.....}
 
-\include{Chapter_1} 
+\include{Chapter_1}
 %\include{Chapter_2}
 %\include{Chapter_3}
 %\include{Chapter_4}
