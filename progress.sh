@@ -26,11 +26,12 @@ done
 
 for i in "${!commits[@]}"; do
   times[i]="'${times[i]}'"
-  messages[i]="'${messages[i]}'"
+  messages[i]="\"${messages[i]}\""
 done
 
 counts="$( IFS=$','; echo "${counts[*]}" )"
 times="$( IFS=$','; echo "${times[*]}" )"
+messages="$( IFS=$','; echo "${messages[*]}" )"
 sed -i'.bak' -E "s/counts = \[.+\]/counts = [$counts]/" index.html
 sed -i'.bak' -E "s/times = \[.+\]/times = [$times]/" index.html
 sed -i'.bak' -E "s/messages = \[.+\]/messages = [$messages]/" index.html

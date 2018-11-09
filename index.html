@@ -42,6 +42,19 @@ var chart = Highcharts.chart("chart", {
     series: [{
         data: data, step: "right", name: "Word Count", color: "#4A9586"
     }],
+    tooltip: {
+        formatter: function() {
+            var date = Highcharts.dateFormat('%a, %e %b %Y %H:%M', new Date(this.x));
+            var text = "<div style='font-size: 85%'>" + date + "</div><br>";
+            var text = text + "<div><strong>Word Count</strong>: " + this.y + "</div>";
+            var message = messages[this.series.data.indexOf(this.point) - 1];
+            if (message) {
+                var text = text + "<br><div style='font-size: 85%;'><em>" + message.trim() + "</em></div>"
+            }
+
+            return text;
+        }
+    }
 });
 </script>
 
