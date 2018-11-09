@@ -12,21 +12,27 @@ times=($times)
 commits="$(git log | grep -E -i -w -oh '[a-f0-9]{40}$')"
 commits=($commits)
 
+# Create list of commit messages
+messages="$(git log | grep -E -i -w -oh '    (.+?)$')"
+messages=($messages)
+
 counts=()
 for i in "${!commits[@]}"; do
   `git checkout "${commits[i]}" --quiet`
-  counts+=("$(texcount Thesis.tex | grep -E -o -i -w 'in text\: (.+)' | cut -d ' ' -f 3)")
+  counts+=("$(texcount *.tex | grep -E -o -i -w 'in text\: (.+)' | tail -1 | cut -d ' ' -f 3)")
 done
 
 `git checkout "${commits[0]}" --quiet`
 
 for i in "${!commits[@]}"; do
   times[i]="'${times[i]}'"
+  messages[i]="'${messages[i]}'"
 done
 
 counts="$( IFS=$','; echo "${counts[*]}" )"
 times="$( IFS=$','; echo "${times[*]}" )"
 sed -i'.bak' -E "s/counts = \[.+\]/counts = [$counts]/" index.html
 sed -i'.bak' -E "s/times = \[.+\]/times = [$times]/" index.html
+sed -i'.bak' -E "s/messages = \[.+\]/messages = [$messages]/" index.html
 rm *.bak
 git checkout master
