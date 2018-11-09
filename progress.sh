@@ -2,7 +2,7 @@
 
 IFS=$'\n'
 
-# Create directory to go nuts in
+git stash save progress.sh
 
 # Create list of times
 times="$(git log | grep -E -i -w -oh 'Date: (.+?)$')"
@@ -36,3 +36,5 @@ sed -i'.bak' -E "s/times = \[.+\]/times = [$times]/" index.html
 sed -i'.bak' -E "s/messages = \[.+\]/messages = [$messages]/" index.html
 rm *.bak
 git checkout master
+git checkout stash@{0} -- progress.sh
+git stash clear
