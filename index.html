@@ -37,8 +37,8 @@ var chart = Highcharts.chart("chart", {
     title: {text: "Thesis Progress"},
     subtitle: {text: "Currently: " + counts[0] + " words"},
     credits: {enabled: false},
-    xAxis: {type: "datetime", title: "Time"},
-    yAxis: {min: 0, title: "Word Count"},
+    xAxis: {type: "datetime", title: {text: "Time"}},
+    yAxis: {min: 0, title: {text: "Word Count"}},
     series: [{
         data: data, step: "right", name: "Word Count", color: "#4A9586"
     }],
