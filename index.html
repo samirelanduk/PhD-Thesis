@@ -16,7 +16,12 @@
   for (var t = times.length - 1; t >= 0; t--) {
       data.push([Date.parse(times[t].slice(6)), counts[t]])
   }
-  data.push([Math.round((new Date()).getTime()), counts[0]])
+  data.push([Math.round((new Date()).getTime()), counts[0]]);
+  var targetData = [[new Date(2018, 10, 5).getTime(), 0]];
+  while (targetData[targetData.length - 1][0] < data[data.length - 1][0]) {
+      var last = targetData[targetData.length - 1];
+      targetData.push([last[0] + (1000 * 60 * 60 * 24 * 7), last[1] + 500])
+  }
   data.reverse();
   </script>
   <script src="https://code.highcharts.com/highcharts.js"></script>
@@ -24,7 +29,8 @@
       max-width: 800px;
       margin-left: auto; margin-right: auto;
       padding: 10px; background-color: #f0f0f0;
-      } #chart {box-shadow: 0 3px 6px 0 rgba(0,0,0,0.2)}</style>
+      } body div {box-shadow: 0 3px 6px 0 rgba(0,0,0,0.2);}
+  </style>
 </head>
 
 <body>
@@ -37,9 +43,12 @@ var chart = Highcharts.chart("chart", {
     title: {text: "Thesis Progress"},
     subtitle: {text: "Currently: " + counts[0] + " words"},
     credits: {enabled: false},
-    xAxis: {type: "datetime", title: {text: "Time"}},
+    xAxis: {type: "datetime", title: {text: "Time"}, min: new Date(2018, 10, 5).getTime(), max: data[0][0]},
     yAxis: {min: 0, title: {text: "Word Count"}},
     series: [{
+        data: targetData, color: "#3498db55", lineWidth: 1,
+        marker: {enabled: false}, enableMouseTracking: false, visible: false
+    }, {
         data: data, step: "right", name: "Word Count", color: "#4A9586"
     }],
     tooltip: {
@@ -56,6 +65,11 @@ var chart = Highcharts.chart("chart", {
         }
     }
 });
+document.getElementsByClassName("highcharts-title")[0].onclick = function () {
+    var series = chart.series[0];
+    series.setVisible(!series.visible, !series.visible);
+    chart.redraw();
+}
 </script>
 
 </body>
