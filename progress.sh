@@ -19,7 +19,7 @@ messages=($messages)
 counts=()
 for i in "${!commits[@]}"; do
   `git checkout "${commits[i]}" --quiet`
-  counts+=("$(texcount *.tex | grep -E -o -i -w 'in text\: (.+)' | tail -1 | cut -d ' ' -f 3)")
+  counts+=("$(texcount *.tex 2> /dev/null | grep -E -o -i -w 'in text\: (.+)' | tail -1 | cut -d ' ' -f 3)")
 done
 
 `git checkout "${commits[0]}" --quiet`
