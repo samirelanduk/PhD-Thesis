@@ -34,6 +34,10 @@ Probably the major Python PDB parser at time of writing is BioPython. This is a 
 
 \section{Data Structures}
 
+The object returned by the various parsing functions is a \texttt{File} object. This essentially represents the actual file object itself rather than its structural contents, and has attributes for PDB code, resolution, keywords, etc.
+
+A \texttt{File} object has one or more \texttt{Model} objects.
+
 \section{Parsing}
 
 \section{Saving}
