@@ -7,10 +7,29 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\chapter{Hi} % Write in your own chapter title
+\chapter{atomium} % Write in your own chapter title
 \label{label_Hi}
-\lhead{Appendix. \emph{Hi}} % Write in your own chapter title to set the page header
+\lhead{Appendix. \emph{A}} % Write in your own chapter title to set the page header
+
+%TC:macro \note [ignore]
 
 % write your code here
+Much of this project relies very heavily on reading in structure data from files deposited to the Protein Data Bank.
+
+Traditionally these files have been stored and distributed in the form of .pdb files. These are text files that consist of a list of records, with each record being limited to 80 characters. Information is stored in these records at fixed offsets from the start of the line. This file format has a number of limitations - most notably the fact that they cannot store more than 100,000 atoms because only five characters are allocated to atom IDs, and so they cannot go past 99,999.
+
+Consequently, the Protein Data Bank also provides files in the newer .cif file format - and indeed, structures with more than 100,000 atoms are \emph{only} available in this file format.
+
+There are a number of parsers available that can handle these file formats, and which were considered for use in this project - both in Python and otherwise. However, for reasons that will be outlines, it was decided to create a novel Python parser. This parser is called atomium.
+
+\section{Rationale}
+
+\section{Data Structures}
+
+\section{Parsing}
+
+\section{Saving}
+
+\section{Usage}
 
 %%%%%%%%%%%% END %%%%%%%%%%%%
