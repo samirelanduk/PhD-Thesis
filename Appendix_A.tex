@@ -8,7 +8,6 @@
 
 
 \chapter{atomium} % Write in your own chapter title
-\label{label_Hi}
 \lhead{Appendix. \emph{A}} % Write in your own chapter title to set the page header
 
 %TC:macro \note [ignore]
@@ -23,6 +22,15 @@ Consequently, the Protein Data Bank also provides files in the newer .cif file f
 There are a number of parsers available that can handle these file formats, and which were considered for use in this project - both in Python and otherwise. However, for reasons that will be outlines, it was decided to create a novel Python parser. This parser is called atomium.
 
 \section{Rationale}
+
+The tool used to read structure files is of such critical importance to this project, that it was important to ensure that the correct tool with the correct \emph{capabilities} was used. Specifically, the tool would need the following properties:
+
+\begin{itemize}
+  \item The ability to read .pdb files.
+  \item The ability to read .cif files.
+\end{itemize}
+
+Probably the major Python PDB parser at time of writing is BioPython. This is a multi-purpose bioinformatics library, with many modules for dealing with general biological data formats. One of these modules allows for parsing of PDB structure files.
 
 \section{Data Structures}
 
