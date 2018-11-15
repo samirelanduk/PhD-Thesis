@@ -42,6 +42,12 @@ A \texttt{File} object has one or more \texttt{Model} objects.
 
 \section{Saving}
 
+One of the more unique features of atomium is that it allows changes to models to be made and then for those changes to be saved in \emph{any} of the three file types that atomium supports.
+
+Unlike the process of parsing, in which the structures pass through a number of different representations reflecting the different layers of abstraction of that process, saving is much more starightforward. A function takes in an atomium \texttt{AtomStructure} (it doesn't need to be a model, chains etc. can be saved individually) and turns it into the relevant filestring.
+
+Only structural information is saved - the various file annotations that are parsed from the original files are presumed to be properties solely of those original files, and not of any modified versions of them that might exist. So, atom records are saved, along with anything else needed to construct details of the actual structure model - but not titles, deposition dates, resolution etc.
+
 \section{Usage}
 
 %%%%%%%%%%%% END %%%%%%%%%%%%
