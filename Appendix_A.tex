@@ -40,6 +40,18 @@ A \texttt{File} object has one or more \texttt{Model} objects.
 
 \section{Parsing}
 
+atomium can read .cif, .mmtf, or .pdb files. In each case the overall process is the same.
+
+\begin{enumerate}
+   \item Get the file contents as a string.
+   \item Determine which filetype it is by looking at file extension or, if not possible, by looking at file contents.
+   \item Convert the filestring to a Python dictionary whose structure is specific to that file type.
+   \item Convert that dictionary to a standard atomium data dictionary, whose structure is the same regardless of the file type origin.
+   \item Convert that data dictionary to an atomium \texttt{File} object with one or more \texttt{File}s within it.
+\end{enumerate}
+
+This process for parsing has a number of advantages over just trying to go from filestring to parsed object in one step. By making the three filetypes converge at one data structure - the atomium data dictionary - it prevents duplication of effort involved in going from `data' to `Python structure'. It also means that every file can have a consistent, dictionary representations, which means that they can all be represented as JSON if desired. It is also easier for testing, as each stage in this (relatively complex) parsing process can more easily be tested in isolation.
+
 \section{Saving}
 
 One of the more unique features of atomium is that it allows changes to models to be made and then for those changes to be saved in \emph{any} of the three file types that atomium supports.
