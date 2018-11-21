@@ -58,7 +58,19 @@ Getting the file contents as a string is a straightforward process - it is simpl
 
 atomium also enables `fetching' a file from a remote server. Generally this is via HTTP, from the RCSB web servers \note{Cite this!} with a four letter code, though the user can select any URL. The Python library requests \note{Cite somehow} is used for this. Alternatively the user can fetch a file over SSH using a different function.
 
-Once the file contents are extracted as a string (or bytestring), atomium then determines which of the three file types it has been given, so it knows which functions to use to process it further. This is done using a straightforward algorithm - if the file extension is given, this will be used to determine filetype. If not, or if the filetype is not one of the three it recognises (such as .ent for example), atomium will assume it is .mmtf if the data is binary, .cif if it is a unicode string that contains the string \texttt{_atom_sites}, and .pdb otherwise.
+Once the file contents are extracted as a string (or bytestring), atomium then determines which of the three file types it has been given, so it knows which functions to use to process it further. This is done using a straightforward algorithm - if the file extension is given, this will be used to determine filetype. If not, or if the filetype is not one of the three it recognises (such as .ent for example), atomium will assume it is .mmtf if the data is binary, .cif if it is a unicode string that contains the string \texttt{\_atom\_sites}, and .pdb otherwise.
+
+\subsection{File Dictionaries}
+
+The next step is to convert this string into a Python dictionary that reflects the internal structure of that file type.
+
+.cif files are essentially a list of connected tables - tables in the sense that each block has a list of headers, and then one or more lists of values that belong to those headers, and connected in the sense that a row may have an ID as its first value which is refered to in another table. atomium represents these tables as lists of dictionaires, where the headers are keys, and the row cells the values. Each of these table lists is a value in the top-level dictionary. \note{This definitely needs a figure or something to show what I'm talking about.} The main bottleneck in this process is splitting values on a single line - they are white-space separated, albeit with whitepsace within quotes ignored, and with both quote types permissable and escapable within the other. Initially the Python library shlex was used to do this splitting, but its speed was just too slow so a custom function was written which was faster - though still the slowest part of the process.
+
+.mmtf are binary encoded msgpack \note{cite} dictionaries, so once the Python msgpack library has decoded it, it is essentially already in dictionary form. The only extra steps that need to be taken are to decode the .mmtf formatted binary fields within this dictionary, using the algorithms specified in the .mmtf documentation and implemented in atomium.
+
+.pdb files have much less internal structure than the other two, and are essentially just lists of records. These records can be grouped by record name however, and this is what atomium does - the file dictionary has record names as keys, and lists of records that belong to that record type as values. The only exceptions are \texttt{REMARK} records, which are further grouped by remark number, and all model related records (\texttt{ATOM}, \texttt{TER}, \texttt{HETATM} etc.), which are grouped together because their order relative to each other is information that would be lost of they were split up into record types (\texttt{TER} records separating chains being the main reason).
+
+This resultant file dictionary, whose internal structure is specific to file type, is essentially just a Python representation of the file contents - no `parsing' is done as such, it just gets the information in a form that later processes can understand. 
 
 \section{Saving}
 
