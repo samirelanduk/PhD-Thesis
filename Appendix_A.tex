@@ -52,6 +52,14 @@ atomium can read .cif, .mmtf, or .pdb files. In each case the overall process is
 
 This process for parsing has a number of advantages over just trying to go from filestring to parsed object in one step. By making the three filetypes converge at one data structure - the atomium data dictionary - it prevents duplication of effort involved in going from `data' to `Python structure'. It also means that every file can have a consistent, dictionary representations, which means that they can all be represented as JSON if desired. It is also easier for testing, as each stage in this (relatively complex) parsing process can more easily be tested in isolation.
 
+\subsection{File Contents and File Type Detection}
+
+Getting the file contents as a string is a straightforward process - it is simply opened and read using the built in Python functions for that. The process is abstracted into a single function which will first try to read the file as a unicode string (appropriate for .cif and .pdb) and then as binary data (appropriate for .mmtf).
+
+atomium also enables `fetching' a file from a remote server. Generally this is via HTTP, from the RCSB web servers \note{Cite this!} with a four letter code, though the user can select any URL. The Python library requests \note{Cite somehow} is used for this. Alternatively the user can fetch a file over SSH using a different function.
+
+Once the file contents are extracted as a string (or bytestring), atomium then determines which of the three file types it has been given, so it knows which functions to use to process it further. This is done using a straightforward algorithm - if the file extension is given, this will be used to determine filetype. If not, or if the filetype is not one of the three it recognises (such as .ent for example), atomium will assume it is .mmtf if the data is binary, .cif if it is a unicode string that contains the string \texttt{_atom_sites}, and .pdb otherwise.
+
 \section{Saving}
 
 One of the more unique features of atomium is that it allows changes to models to be made and then for those changes to be saved in \emph{any} of the three file types that atomium supports.
