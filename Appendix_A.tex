@@ -66,11 +66,23 @@ The next step is to convert this string into a Python dictionary that reflects t
 
 .cif files are essentially a list of connected tables - tables in the sense that each block has a list of headers, and then one or more lists of values that belong to those headers, and connected in the sense that a row may have an ID as its first value which is refered to in another table. atomium represents these tables as lists of dictionaires, where the headers are keys, and the row cells the values. Each of these table lists is a value in the top-level dictionary. \note{This definitely needs a figure or something to show what I'm talking about.} The main bottleneck in this process is splitting values on a single line - they are white-space separated, albeit with whitepsace within quotes ignored, and with both quote types permissable and escapable within the other. Initially the Python library shlex was used to do this splitting, but its speed was just too slow so a custom function was written which was faster - though still the slowest part of the process.
 
-.mmtf are binary encoded msgpack \note{cite} dictionaries, so once the Python msgpack library has decoded it, it is essentially already in dictionary form. The only extra steps that need to be taken are to decode the .mmtf formatted binary fields within this dictionary, using the algorithms specified in the .mmtf documentation and implemented in atomium.
+.mmtf are binary encoded MessagePack \note{cite} dictionaries, so once the Python msgpack library has decoded it, it is essentially already in dictionary form. The only extra steps that need to be taken are to decode the .mmtf formatted binary fields within this dictionary, using the algorithms specified in the .mmtf documentation and implemented in atomium.
 
 .pdb files have much less internal structure than the other two, and are essentially just lists of records. These records can be grouped by record name however, and this is what atomium does - the file dictionary has record names as keys, and lists of records that belong to that record type as values. The only exceptions are \texttt{REMARK} records, which are further grouped by remark number, and all model related records (\texttt{ATOM}, \texttt{TER}, \texttt{HETATM} etc.), which are grouped together because their order relative to each other is information that would be lost of they were split up into record types (\texttt{TER} records separating chains being the main reason).
 
-This resultant file dictionary, whose internal structure is specific to file type, is essentially just a Python representation of the file contents - no `parsing' is done as such, it just gets the information in a form that later processes can understand. 
+This resultant file dictionary, whose internal structure is specific to file type, is essentially just a Python representation of the file contents - no `parsing' is done as such, it just gets the information in a form that later processes can understand.
+
+\subsection{Data Dictionary}
+
+This file dictionary is then turned into an atomium `data dictionary'. This is a dictionary with a consistent internal structure regardless of what the original file type was, and essentially consists of a number of sub-dictionaries.
+
+For example there is the description sub-dictionary, which contains meta information about the file such as title and deposition date. There is an experiment sub-dictionary, with information about how the model was created. The quality sub-dictionary contains resolution and other related information. The geometry sub-dictionary contains transformation matrices, such as those needed to create biological assemblies.
+
+The most important one is `models', which is actually a list of sub-dictionaries. Each one contains informations about the chains, ligands and water molecules in that model, containing all the information needed to create an atomium \texttt{Model}.
+
+Each of the three dile dictionaries have their own functions for extracting information from them and building a data dictionary. In the case of .cif and .mmtf file dictionaries, this is relatively straightforward, as much of the data has already been extracted in the previous step, and this is largely just a question of transfering data from one dictionary to another, and nesting atoms within the right structures. \note{Talk about chain ID problem}
+
+For .pdb files however, the previous step just grouped records, and the data is still locked away within these strings at pre-defined offsets, so for this filetype it is this stage which is the bottleneck, as it takes longer to extract the necessary information.
 
 \section{Saving}
 
