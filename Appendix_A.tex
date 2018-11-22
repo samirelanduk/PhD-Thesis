@@ -84,6 +84,14 @@ Each of the three dile dictionaries have their own functions for extracting info
 
 For .pdb files however, the previous step just grouped records, and the data is still locked away within these strings at pre-defined offsets, so for this filetype it is this stage which is the bottleneck, as it takes longer to extract the necessary information.
 
+\subsection{Model Generation}
+
+The structure of the data dictionary is optimised to make model creation as rapid as possible. The polymers, ligands and water molecules are already segregated as they will be in the model, and all names and IDs are already parsed. Relevant \texttt{Model}, \texttt{Chain}, \texttt{Ligand} etc. molecules are created from this information.
+
+The surrounding \texttt{File} object is made from the rest of the data dictionary, with the meta information, with the values of the sub-dictionaries becoming properties of that object. The \texttt{Model} objects exist as a list within that \texttt{File}, with a pointer to the first \texttt{Model} if the user only needs the first.
+
+Biological assemblies can be created using a \texttt{generate\_assembly} fuction. In earlier versions of atomium, each individual molecule was transformed separately, but in very large structures this can be time consuming. Instead, the copies are created, and then the atoms of all the structures are transformed in one step.
+
 \section{Saving}
 
 One of the more unique features of atomium is that it allows changes to models to be made and then for those changes to be saved in \emph{any} of the three file types that atomium supports.
