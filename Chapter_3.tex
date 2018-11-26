@@ -1,0 +1,32 @@
+%%%% MACRO DEFINITION %%%%
+
+\providecommand{\pvivax}{P.~vivax}
+\providecommand{\pfalciparum}{P.~falciparum}
+\providecommand{\cterm}{C-terminus}
+\providecommand{\nterm}{N-terminus}
+
+\providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+
+\providecommand{\refimage}[1]{\figurename~\ref{fig:#1}}
+
+%TC:macro \note [ignore]
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%													BEGIN
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{ZincBind - The Database of Zinc Binding Sites} % Write in your own chapter title
+\label{Chapter2}
+\lhead{Chapter 2. \emph{ZincBind - The Database of Zinc Binding Sites}} % Write in your own chapter title to set the page header
+
+This project is an attempt to develop novel means of predicting Zinc Binding Sites using the known properties of previously identified Zinc Binding Sites. As such, the initial step was to create a dataset of these already known sites.
+
+This is an undertaking that has been performed previously - several times (see Chapter 1). One of the primary reasons that the effort has been duplicated so many times is because in none of the previous dataset generations did the authors make their data publicly available in an easy-to-use resource. Therefore from the very beginning of this project, the intention was always to not \emph{just} create this dataset of Zinc Binding Sites, but to make this database publicly available via a web resource, that would be continually updated with new sites as they become available.
+
+This chapter will describe the creation of that dataset, and the web application that offers users access to the data - ZincBind.
