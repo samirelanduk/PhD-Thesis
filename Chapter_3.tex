@@ -30,3 +30,14 @@ This project is an attempt to develop novel means of predicting Zinc Binding Sit
 This is an undertaking that has been performed previously - several times (see Chapter 1). One of the primary reasons that the effort has been duplicated so many times is because in none of the previous dataset generations did the authors make their data publicly available in an easy-to-use resource. Therefore from the very beginning of this project, the intention was always to not \emph{just} create this dataset of Zinc Binding Sites, but to make this database publicly available via a web resource, that would be continually updated with new sites as they become available.
 
 This chapter will describe the creation of that dataset, and the web application that offers users access to the data - ZincBind.
+
+\section{Data Generation}
+
+ZincBind uses as its primary data source the Protein Databank \note{cite}. This contains hundreds of thousands of protein structures, a subset of which contain zinc atoms and which can be inspected to see if a zinc binding site can be identified.
+
+The RCSB web services allow a user to query the entire databank by, among other things, the chemical formulae of its small molecules. The PDB IDs of all zinc atom containing structures can therefore be obtained by issuing a request to these web services for a \verb|ChemCompFormulaQuery| with the formula \verb|Zn|.
+
+If the dataset is being created from scratch, each of these PDB IDs is iterated through in turn to look for zinc binding sites. If the dataset is merely being updated with new structures, only those IDs that don't already exist in the database are used.
+
+\subsection{Structure Inspection}
+
