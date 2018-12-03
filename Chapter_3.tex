@@ -41,3 +41,11 @@ If the dataset is being created from scratch, each of these PDB IDs is iterated 
 
 \subsection{Structure Inspection}
 
+The algorithm iterates through each PDB code and for each attempts to determine what zinc binding sites are present, if any, and saves the relevant objects to the database once its analysis is complete. Each PDB ID is analysed within a single database transaction, meaning that the SQL statements are built up by Django throughout the analysis and then executed all at once at the end of each PDB ID analysis. This has two benefits. Firstly, it makes the whole process much faster - there are database records for each atom in the binding site, so opening up database connections, creating a record, and closing the connection multiple times per structure is much more time consuming than just doing that once at the end. Secondly, and more importantly, if the program is interrupted in the middle of building a database, it will essentially rollback to the last fully processed PDB, rather than saving records for half-processed PDBs which could cause errors when the program is restarted.
+
+The structures are requested from the RCSB web servers in the .cif file format. This, and all subsequent structure parsing and analysis, are abstracted into the atomium Python library (see Appendix A).
+
+The first processing step with the obtained and parsed structure, is to generate a biological assembly. The raw coordinates of the PDB structure contain the `asymmetric unit', which is often not the way the chains are arranged outside of the crystallisation experiment. Each PDB structure contains a list of possible biological assemblies that can be created from the chains in the asymmetric unit to make a more biologically realistic structure, and each is associated with a list of transformation matrices and calculated metrics. The delta free energy of the assemblies are used to rank them, and the lowest delta free energy assembly that still contains zinc is selected as the `real' biological assembly.
+
+This step is critical. While asymmetric units are perfectly suitable if you are merely concerned with intra-chain features, they are often unsuitable for examining the interfaces between chains. Since many zinc binding sites are between chains, relying on asymmetric units would produce data that is not particularly meaningful.
+
