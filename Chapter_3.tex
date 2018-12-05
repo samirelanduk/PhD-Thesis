@@ -22,8 +22,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{ZincBind - The Database of Zinc Binding Sites} % Write in your own chapter title
-\label{Chapter2}
-\lhead{Chapter 2. \emph{ZincBind - The Database of Zinc Binding Sites}} % Write in your own chapter title to set the page header
+\label{Chapter3}
+\lhead{Chapter 3. \emph{ZincBind - The Database of Zinc Binding Sites}} % Write in your own chapter title to set the page header
 
 This project is an attempt to develop novel means of predicting Zinc Binding Sites using the known properties of previously identified Zinc Binding Sites. As such, the initial step was to create a dataset of these already known sites.
 
@@ -48,4 +48,8 @@ The structures are requested from the RCSB web servers in the .cif file format. 
 The first processing step with the obtained and parsed structure, is to generate a biological assembly. The raw coordinates of the PDB structure contain the `asymmetric unit', which is often not the way the chains are arranged outside of the crystallisation experiment. Each PDB structure contains a list of possible biological assemblies that can be created from the chains in the asymmetric unit to make a more biologically realistic structure, and each is associated with a list of transformation matrices and calculated metrics. The delta free energy of the assemblies are used to rank them, and the lowest delta free energy assembly that still contains zinc is selected as the `real' biological assembly.
 
 This step is critical. While asymmetric units are perfectly suitable if you are merely concerned with intra-chain features, they are often unsuitable for examining the interfaces between chains. Since many zinc binding sites are between chains, relying on asymmetric units would produce data that is not particularly meaningful.
+
+The algorithm then checks that the resultant structure is usable, and is not just alpha carbons as some older structures are. If it is a `skeleton structure', the zinc atom(s) in that structure are saved to the database with an annotation explaining that they don't have a binding site because the PDB was unusable. Note that this is the case whenever a zinc atom is rejected - it is still saved to the database with an explanatory annotation, because by doing this \emph{every} zinc atom in the Protein Data Bank can be accounted for in ZincBind. If this were not done, and a user tried to find a particular zinc atom from the data bank in ZincBind which had not been assigned a binding site, that user would have no way of knowing if the zinc atom was absent because ZincBind had not examined that PDB, or if it was absent because a binding site could not be assigned to it.
+
+Any zinc atoms that are in the asymmetric unit but not the biological assembly (common in cases where the asymmetric unit is just the biological assembly repeated multiple times) are also saved to the database without a binding site, with an explanatory explanation as to why it has none, for the same reason.
 
