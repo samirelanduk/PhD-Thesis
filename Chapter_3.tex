@@ -61,3 +61,12 @@ Again, those zinc atoms which are excluded at this stage are given an annotation
 
 Those clusters remaining are saved to the database as zinc binding sites, with records for metals, residues, residue atoms, and the site itself. Also saved are records for the protein chains that the residues are a part of, along with their complete sequence (as reported in the structure annotation, not the sequence of residues in the model, which may have missing residues).
 
+\subsection{Equivalent Sites}
+
+The database as it stands at this point in the algorithm will be a list of zinc binding sites, where each site is considered distinct and separate from all others. This is somewhat misleading, as many proteins appear in the Protein Data Bank several times, and so the binding site(s) in those structures will appear in ZincBind several times. The binding site in (for example) Carbonic Anhydrase will appear in ZincBind many hundreds of times, yet each of these records refer to the same biological unit.
+
+To account for this, ZincBind clusters binding sites into equivalent sites. The first step is to cluster the zinc binding chains that were saved as part of the earlier generation process into clusters on 90\% sequence identity, using the program CD-HIT \note{cite}. It is assumed that chains in a chain cluster are functionally equivalent.
+
+The binding sites themselves are then clustered using these chain clusters. Two zinc binding sites are assigned to the same cluster if (1) they are associated with the same chain cluster(s), (2) they have the same residue names in the same order, and (3) their surrounding residue names are the same. These latter two steps are important to ensure that chains with two or more zinc binding sites along them don't have those binding sites incorrectly assigned to the same cluster.
+
+Finally, one site in each cluster is flagged as being `representative'. This is so that analysis that requires only one zinc binding site from each cluster is easier, and the site chosen is the site from the lowest resolution structure.
