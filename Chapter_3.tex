@@ -70,3 +70,27 @@ To account for this, ZincBind clusters binding sites into equivalent sites. The 
 The binding sites themselves are then clustered using these chain clusters. Two zinc binding sites are assigned to the same cluster if (1) they are associated with the same chain cluster(s), (2) they have the same residue names in the same order, and (3) their surrounding residue names are the same. These latter two steps are important to ensure that chains with two or more zinc binding sites along them don't have those binding sites incorrectly assigned to the same cluster.
 
 Finally, one site in each cluster is flagged as being `representative'. This is so that analysis that requires only one zinc binding site from each cluster is easier, and the site chosen is the site from the lowest resolution structure.
+
+\subsection{The ZincBind Web Resource}
+
+As already noted, the creation of this dataset was intended to serve both as the primary dataset of this project, and as a publicly available resource.
+
+This resource is called ZincBind, and is accessible at \url{zincbind.bioinf.org.uk}. The website is created with Django, a Python web framework and Object Relational Management system.
+
+The web frontend is designed with a responsive, mobile-first layout that adapts to different screen sizes, and modern JavaScript and Test Driven Development practices.
+
+The home page contains a short, clear statement of what ZincBind is (a ``database of zinc binding sites, automatically generated from the Protein Data Bank") as well as a brief overview of its key metrics - number of unique binding sites, total number of binding sites, and the number of PDB files the sites are derived from.
+
+Searching of the database can be done in one of three ways. Firstly, from the home page, the user can enter a search term that will be used to search multiple PDB fields at once - title, PDB code, classification etc. This is for users who just want to find entries that have any relation to a given term at all. Secondly, the user can navigate to the Advanced Search page, where they can specify a more precise search by one or more fields. This also allows searching by numeric cutoffs, such as for PDBs below a certain resolution or deposited after a certain date. Thirdly, they can provide a sequence and BLAST search the database. This uses the NCBI blastp binary on the backend, whose JSON output is processed by Django.
+
+The search results for the first two modes of searching are returned as a list of matching PDBs, with binding sites nested within them. Both the PDB and the sites themselves are clickable and will take the user to the page for that entitiy. Search results can be sorted by a variety of metrics, and are paginated to 25 results per page.
+
+PDB pages represent PDB records. They provide basic information for that PDB, as well as overviews of the zinc content of that PDB. The zincs associated with a binding site are listed as clickable links, while those without a binding site are listed along with their omission reason. Finally, there is a 3D maniplatable view of the PDB with all of its zinc binding sites. This uses the NGL JavaScript library.
+
+The binding site pages contain more detail for that specific binding site, such as its mode of coordination, and links to equivalent sites in the same cluster. There is also a 3D manipualtable model of the binding site on this page, zoomed in to the specific site and with selectable individual residues and metals.
+
+ZincBind also has a page that gives an overview of the dataset as a whole. This contains charts for residue dsitribution, experimental methods, residue codes, resolution, species frequency, and PDB classification. There are also buttons for downloading the entire dataset in either JSON or SQlite, a link to browse the entire dataset PDB by PDB, and a link to the API.
+
+ZincBind's API is a web browsable REST API, created using the Django Rest Framework. Web browsability means that results will be returned as HTML if requests are sent using a browser, and JSON otherwise. The API can be used to get JSON represtations of object sets, individual objects, and to search the databse using all the same parameters as the browser search tool.
+
+Finally, ZincBind has a help page, structured as a series of questions that a user may have.
