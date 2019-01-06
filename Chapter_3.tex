@@ -71,7 +71,7 @@ The binding sites themselves are then clustered using these chain clusters. Two 
 
 Finally, one site in each cluster is flagged as being `representative'. This is so that analysis that requires only one zinc binding site from each cluster is easier, and the site chosen is the site from the lowest resolution structure.
 
-\subsection{The ZincBind Web Resource}
+\section{The ZincBind Web Resource}
 
 As already noted, the creation of this dataset was intended to serve both as the primary dataset of this project, and as a publicly available resource.
 
@@ -94,3 +94,11 @@ ZincBind also has a page that gives an overview of the dataset as a whole. This 
 ZincBind's API is a web browsable REST API, created using the Django Rest Framework. Web browsability means that results will be returned as HTML if requests are sent using a browser, and JSON otherwise. The API can be used to get JSON represtations of object sets, individual objects, and to search the databse using all the same parameters as the browser search tool.
 
 Finally, ZincBind has a help page, structured as a series of questions that a user may have.
+
+\section{Data Analysis}
+
+The finished dataset offers a useful insight into the general properties of zinc binding sites - or at least, that subset of zinc binding sites for which structural information is available. Some of these properties are of use to building predictive models of zinc binding sites, whereas others are of more general interest. An overview of the main findings that can be gleaned from the dataset will be presented here. All values are correct at the time of writing ({\today}), though as this is a continually and automatically updated dataset, the precise values will vary slightly as time goes on. It is not anticipated that these changes will alter the overall conclusions, as the dataset is very large already.
+
+\subsection{The Prevalence of Zinc}
+
+Of the 146,856 PDB structures in the Protein Data Bank at the time of the most recent database update, 14,099 contained at least one zinc atom and are accounted for in ZincBind. This porportion - 9.60\% - is very close to the 10\% of human proteins usually said to contain zinc \note{cite}, though as the Data Bank does not purport to be representative sampling of any genome, human or otherwise, there was no particular reason for this to be the case.
