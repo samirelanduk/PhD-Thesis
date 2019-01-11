@@ -99,6 +99,40 @@ Finally, ZincBind has a help page, structured as a series of questions that a us
 
 The finished dataset offers a useful insight into the general properties of zinc binding sites - or at least, that subset of zinc binding sites for which structural information is available. Some of these properties are of use to building predictive models of zinc binding sites, whereas others are of more general interest. An overview of the main findings that can be gleaned from the dataset will be presented here. All values are correct at the time of writing ({\today}), though as this is a continually and automatically updated dataset, the precise values will vary slightly as time goes on. It is not anticipated that these changes will alter the overall conclusions, as the dataset is very large already.
 
+\emph{Note that much of this text has previously appeared in the ZincBind publication from January 2019}
+
 \subsection{The Prevalence of Zinc}
 
 Of the 146,856 PDB structures in the Protein Data Bank at the time of the most recent database update, 14,099 contained at least one zinc atom and are accounted for in ZincBind. This porportion - 9.60\% - is very close to the 10\% of human proteins usually said to contain zinc \note{cite}, though as the Data Bank does not purport to be representative sampling of any genome, human or otherwise, there was no particular reason for this to be the case.
+
+\subsection{Qualifying Atoms}
+
+In total, when run in December 2018, ZincBind identifies 41,789 zinc atoms and 1,249 other metal atoms associated with zinc atoms when searching the raw coordinates of the PDB asymmetric units. Other metals are only stored in ZincBind if they are part of a multi-metal binding site with at least one zinc atom, so the vast majority of metals in the database are zinc. Of the non-zinc metals, the most common of these `co-active' metals are magnesium, potassium, iron and copper.
+
+Of the 41,789 zinc atoms in the database, 14,360 (34.3\%) are not associated with any binding site, and are in the database solely to acknowledge their existence. The most common reason for not assigning a zinc atom to a binding site is that the atom is duplicated multiple times in the asymmetric unit, but appears only once in the biological assembly used for processing - 9691 metals were excluded for this reason. For example, PDB entry 1A4L contains four chains, each with one zinc atom, but the biological assembly only uses one. The other three are stored in ZincBind with an omission reason, but have no binding site assigned to them.
+
+Using the full biological assembly leads to zinc ions being both excluded and included as being associated with binding sites. As stated above, it is common for the asymmetric unit of a PDB file to contain multiple copies of the biomolecule of interest as a result of crystallization, but once the `correct' assembly is chosen, these duplicated zinc atoms will be absent from the final structure. Conversely, using the full biological assembly rather than just the raw asymmetric unit coordinates of the PDB is crucial when the zinc atom is present at an interface between chains. In the asymmetric unit, there may be a single residue coordinating with the ion - if symmetry were not considered, such a model would be discarded by the ZincBind algorithm as a salt.
+
+\subsection{Zinc Binding Sites with High Representation}
+
+The 28,667 metal atoms, for which binding site information is stored, are part of a total of 24,992 zinc binding sites in ZincBind. After clustering the proteins at 90\% sequence identity and then clustering the binding sites as described above, there are 7,489 unique zinc binding sites in the database. The binding site with the most copies is from carbonic anhydrase (693 copies), a catalytic serum protein and, as already noted, the first known zinc binding protein. This is followed by a nitric oxide synthase zinc binding site (285 copies), an interface site between two chains, and then JMJD2D (266 copies), a lysine-specific demethylase. 4,223 zinc binding sites are currently unique in that they have only one structure.
+
+For each cluster of equivalent zinc binding sites, the best resolution structure is chosen to provide a single site which is flagged as the `representative' for that cluster.
+
+\subsection{Liganding Residues}
+
+The binding residues that dominate zinc binding sites are well established: cysteine, histidine, and the acidic residues aspartate and glutamate \note{Cite}. This is supported by the data in ZincBind. There are a total of 109,363 liganding residues in ZincBind, of which those four residue types, together with water, comprise 92.6\% of all zinc-liganding residues. Note, however, that this considers every binding site in the database. When non-redundant sites are studied (i.e.\ only one site per cluster thereby removing the bias towards more intensely studied proteins), these five comprise a slightly smaller percentage of zinc-liganding residues (91.1\%). This suggests that the binding sites most frequently appearing in the PDB show slightly less variation than a more representative sampling.
+
+If the binding residues' single letter codes are combined to give an overall `signature' of the binding site, C4 (four cysteine residues) is the most prevalent, with 1,129 of the 7,489 unique binding sites having this arrangement of residues - followed closely by C3H1, with 931. That the most common signature makes up just 15.1\% of the total is indicative of the relatively high diversity in such signatures. Between them, the top ten residue signatures account for just 57.6\% of the total.
+
+Of the 21,810 redundant binding sites that contain just one zinc atom, and which come from structures with resolutions better than 3\AA, the most common mode of coordination is via four liganding atoms: 14,702 examples (67.4\%). 3-coordination and 5-coordination have similar prevalences: 2,027 (9.4\%) and 3,274 (15.2\%) respectively. 
+
+This same subset of binding sites can be used to investigate liganding atom distances. Nitrogen and sulphur atoms both have characteristic distances with tight distributions: $2.12\pm0.19$\AA\ and $2.33\pm0.12$\AA\ respectively. Oxygen however as a much wider distribution, as it can be provided by either of the carboxylate oxygens of the acidic side chains, or from water. Its average distance to zinc is $2.31\pm0.54$\AA.
+
+\subsection{Co-active Binding Sites}
+
+In some cases multiple metals act in concert to form a single functional unit. Such sites are generally referred to as co-active binding sites in the literature (or `co-catalytic' where the site is known to have a catalytic function). Here, such sites are defined as those instances where a single residue is liganded to more than one metal, according to the criteria defined above. The metals are grouped into a single site as described in the methods.
+
+In ZincBind, 3,182 from the total of 24,992 zinc binding sites (12.7\%) contain multiple metals - 2,754 contain two metals, 379 contain three, 36 contain four, ten contain five, and three zinc binding sites contain six metals - though two of these are from a synthetic construct.
+
+These multi-metal sites account for all of the non-zinc metals in the ZincBind database. While the term `co-catalytic' is sometimes used interchangeably with `co-active', only 2661 (83.6\%) are derived from an enzymatic protein (defined here as a protein name ending in \emph{--ase}). However this compares with just 61.1\% of all zinc-only binding sites that are enzymatic. A Fisher exact test showed the difference to be significant ($p<0.00001$).
