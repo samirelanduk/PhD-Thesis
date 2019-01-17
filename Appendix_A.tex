@@ -26,19 +26,31 @@ There are a number of parsers available that can handle these file formats, and 
 The tool used to read structure files is of such critical importance to this project, that it was important to ensure that the correct tool with the correct \emph{capabilities} was used. Specifically, the tool would need the following properties:
 
 \begin{itemize}
-  \item The ability to read .pdb files.
-  \item The ability to read .cif files.
+  \item The ability to read .cif files. Some structures are \emph{only} available in this form as they contain too many atoms to fit in a single .pdb file, so .pdb parsing alone would lead to an incomplete (though still very large) coverage of the available structures.
+  \item The ability to generate biological assemblies from the raw, asymmetric unit coordinates of the file. As will be outlined below, the structure actually described by these files is often not entirely representative of biological reality, and certain transformations must be performed before analysis can be done.
+  \item The ability to extract certain items of descriptive data from the files. In addition to the actual coordinates of the structures' atoms, the files also contain `meta' information about the file, details of the experiment that produced them and the species the molecules came from, quality information such as resolution, and sequence information not obtainable from the model itself (which often contain missing residues). This information was needed to annotate my own database.
 \end{itemize}
 
-Probably the major Python PDB parser at time of writing is BioPython. This is a multi-purpose bioinformatics library, with many modules for dealing with general biological data formats. One of these modules allows for parsing of PDB structure files, and is frequently used in Python analyses of protein structures. However, BioPython's PDB reader does not support the processing of Biological Assemblies - it can only give the user the asymmetric unit as a model. As this project relies on having that functionality as a core part of the parsing process, this makes using BioPython difficult.
+Probably the major Python PDB parser at time of writing is BioPython. This is a multi-purpose bioinformatics library, with many modules for dealing with general biological data formats. One of these modules allows for parsing of PDB structure files, and is frequently used in Python analyses of protein structures. However, BioPython's PDB reader does not support the processing of Biological Assemblies - it can only give the user the asymmetric unit as a model. As this project relies on having that functionality as a core part of the parsing process, this makes using BioPython difficult. It does meet the other requirements in that it can parse .cif files and read the metadata, but biological assembly generation is too crucial for the library to be considered.
 
-It was therefore decided to create a novel Python library for handling biological structures, which would focus solely on structural models (BioPython has many other disparate functions). An additional advantage to doing this was that it gave me a much greater insight into the structure of these files, and of structural biology concepts generally.
+I therefore decided to create a novel Python library for handling biological structures, which would focus solely on structural models (BioPython has many other disparate functions). An additional advantage to doing this was that it gave me a much greater insight into the structure of these files, and of structural biology concepts generally.
 
 \section{Data Structures}
 
-The object returned by the various parsing functions is a \texttt{File} object. This essentially represents the actual file object itself rather than its structural contents, and has attributes for PDB code, resolution, keywords, etc.
+The object returned by the various parsing functions is a \texttt{File} object. This essentially represents the actual file object itself rather than its structural contents, and has the `meta', descriptive attributes referred to above. Some key attributes are:
 
-A \texttt{File} object has one or more \texttt{Model} objects.
+\begin{itemize}
+  \item \texttt{code} The PDB identifier of the structure.
+  \item \texttt{title} An overall description of the structure.
+  \item \texttt{technique} The experimental procedure used to generate the data, such as X-Ray Diffraction, NMR, etc.
+  \item \texttt{source\_organism} The organism that the molecules were originally derived from. Note that in cases where the file lists multiple species, only the first is used.
+  \item \texttt{expresison\_system} The organism that the molecules were actually expressed in. Again just the first is assigned to this property if there are multiple.
+  \item \texttt{resolution} A measure of structure quality.
+\end{itemize}
+
+There are many others - the full documentation lists them all.
+
+The two most crucial attributes of the root \texttt{File} object are \texttt{model} and \texttt{models}. A \texttt{File} object has one or more \texttt{Model} objects, representing the actual structures themselves, and these are accessible via \texttt{models}. Because most files just contain a single model, the \texttt{model} attribute points to the first \texttt{Model} object as a convenience.
 
 \section{Parsing}
 
@@ -68,7 +80,7 @@ The next step is to convert this string into a Python dictionary that reflects t
 
 .cif files are essentially a list of connected tables - tables in the sense that each block has a list of headers, and then one or more lists of values that belong to those headers, and connected in the sense that a row may have an ID as its first value which is refered to in another table. atomium represents these tables as lists of dictionaires, where the headers are keys, and the row cells the values. Each of these table lists is a value in the top-level dictionary. \note{This definitely needs a figure or something to show what I'm talking about.} The main bottleneck in this process is splitting values on a single line - they are white-space separated, albeit with whitepsace within quotes ignored, and with both quote types permissable and escapable within the other. Initially the Python library shlex was used to do this splitting, but its speed was just too slow so a custom function was written which was faster - though still the slowest part of the process.
 
-.mmtf are binary encoded MessagePack \note{cite} dictionaries, so once the Python msgpack library has decoded it, it is essentially already in dictionary form. The only extra steps that need to be taken are to decode the .mmtf formatted binary fields within this dictionary, using the algorithms specified in the .mmtf documentation and implemented in atomium.
+.mmtf files are binary encoded MessagePack \note{cite} dictionaries, so once the Python msgpack library has decoded it, it is essentially already in dictionary form. The only extra steps that need to be taken are to decode the .mmtf formatted binary fields within this dictionary, using the algorithms specified in the .mmtf documentation and implemented in atomium.
 
 .pdb files have much less internal structure than the other two, and are essentially just lists of records. These records can be grouped by record name however, and this is what atomium does - the file dictionary has record names as keys, and lists of records that belong to that record type as values. The only exceptions are \texttt{REMARK} records, which are further grouped by remark number, and all model related records (\texttt{ATOM}, \texttt{TER}, \texttt{HETATM} etc.), which are grouped together because their order relative to each other is information that would be lost of they were split up into record types (\texttt{TER} records separating chains being the main reason).
 
