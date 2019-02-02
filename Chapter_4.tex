@@ -1,0 +1,45 @@
+%%%% MACRO DEFINITION %%%%
+
+\providecommand{\pvivax}{P.~vivax}
+\providecommand{\pfalciparum}{P.~falciparum}
+\providecommand{\cterm}{C-terminus}
+\providecommand{\nterm}{N-terminus}
+
+\providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+
+\providecommand{\refimage}[1]{\figurename~\ref{fig:#1}}
+
+%TC:macro \note [ignore]
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%													BEGIN
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Zinc Binding Geometric Patterns} % Write in your own chapter title
+\label{Chapter4}
+\lhead{Chapter 4. \emph{Zinc Binding Geometric Patterns}} % Write in your own chapter title to set the page header
+
+Before applying machine learning methods to the dataset, it is worth stopping to see if there are any straightforward identifiable geometric patterns that occur in the zinc binding stuctures gathered, which might be used as templates to search in unknown structures.
+
+There is a wide variety of different binding modes and residue composition, as has been shown, so it is not at first apparent that there should be any usable geometric templates that can be extracted from these. However ZincBind divides the binding sites among families, each with their own residue makeup, and it seems much more plausible that there may be consistent within families. That is, while there may not be a single `zinc binding pattern', there may be a `H3' pattern for example, or a `C2H2' pattern.
+
+Specifically, in this chapter I am interested in patterns of alpha and beta carbons, and the binding sites will be examined in terms of the geometry of these atoms. There are two primary reasons for this:
+
+\begin{enumerate}
+   \item The primary use case for searching through protein structures looking for zinc binding patterns is for when the structure is an apo-structure - without zinc. The actual liganding `tips' of liganding residues would be expected to vary more markedly in position than the alpha and beta carbons, which are more constrained by the overall fold of the protein \note{Cite!}.
+   \item All residues contain alpha carbons, and all but one contain beta carbons. This means that essentially all residues can be searched for the resultant pattern. While this is not especially useful for the specific use case of finding native zinc binding sites, it \emph{is} useful for zinc binding site engineering. The pattern search could identify all residues which fit a given pattern, and if the residue identities also match it can be flagged as a possible zinc binding site, and if they don't, it can be flagged as a site which could feasibly be mutated to become one.
+\end{enumerate}
+
+\section{Profile Generation}
+
+The initial step is to go through the ZincBind dataset and create a `profile' for each family. As some of the smaller families are quite esoteric, with large numbers of residues and metals, I decided to limit the scan for the smaller, more highly represented families. Specifically, the initial families were H3 (chosen because carbonic anhydrase is in this family, which is a frequent target of protein engineering), C4 (the most common family), C2H2, and C3H1 (both common families, important in zinc fingers).
+
+Limiting to families which generally ligate a single zinc, rather than coactive binding sites, is important as there would be more constraints on residue position if they are all clustered around a single centre.
+
+For each family, all sites are examined providing (1) their resolution is better than 2.5 ~{\AA}, (2) they only have a single metal, and (3) they ligate using side chain atoms \note{Not at time of writing!}.
