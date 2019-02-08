@@ -43,3 +43,13 @@ The initial step is to go through the ZincBind dataset and create a `profile' fo
 Limiting to families which generally ligate a single zinc, rather than coactive binding sites, is important as there would be more constraints on residue position if they are all clustered around a single centre.
 
 For each family, all sites are examined providing (1) their resolution is better than 2.5 ~{\AA}, (2) they only have a single metal, and (3) they ligate using side chain atoms \note{Not at time of writing!}.
+
+The key attributes to determine for any given site are thos eattributes which would be used to actually search a novel structure. This means that the distribution of distances between residue atoms and the metal atom, however interesting, are irrelevant for these purposes because the structures being searched will not have metals present. That leaves the distances between the alpha and beta carbons themselves.
+
+The number of measurements needed for a given binding site will increase with the number of residues, because all combinations need to be considered. For three residue sites such as H3, there are three measurements for the alpha carbons (CA1-CA2, CA2-CA3, CA1-CA3) and three for the beta carbons (CB1-CB2, CB2-CB3, CB1-CB3), for a total of six measurements. For four residue sites, there are six alpha measurements and six beta measurements \note{Give combinations formula explanation}.
+
+This requires a certain consistency in which residues are labelled as 1, 2 etc. In this system, the residues of a given type are ordered by alpha carbon distance to the metal, and numbered accordingly.
+
+Each binding site can therefore be modelled a n-dimensional vector, where n is the number of measurements for that residue type. After iterating through the database then, the profile for a given binding site will be a M x N matrix.
+
+These need to be clustered in order to create a profile that can actually be used to search new structures. The vectors would, it was hoped, cluster in regions representing a `typical' residue arrangement for that type of family.
