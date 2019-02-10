@@ -68,5 +68,43 @@ However, the data show otherwise. About 10\% of all proteins in the human genome
 
 In fact it is precisely that unremarkableness that has made zinc so attractive. Having just one oxidation state may mean that it cannot hold onto an electron mid-reaction, but it also means that the ion will retain its electronic properties in a wide range of reducing environments - and its status as a particularly good Lewis acid means it is still very useful in catalysis. Its lack of spectroscopic activity may make zinc solutions colourless, but the same arrangement of d-orbitals that causes this also means that there is no energetic penalty for zinc coming out of solution (where it is octahedrally coordinated) and into the binding site \note{Explain this MUCH better}.
 
+\section{Predicting Zinc Binding}
+
+There are still many proteins whose function is unknown. In many cases we only know their sequence, though some of these have had their structure solved experimentally.
+
+One means of determining what function a protein might be intended to perform is to look for certain motifs associated with a given function. If, for example, it can be shown that such a protein had one or more zinc binding sites, that could offer insights into what function the protein performs. Indeed, that is ultimately the goal of this project.
+
+Owing to this clear usefulness, there have been a number of attempts to develop such predictors in the past, dating back to the early 1990s. These methods and techniques form the essential context in which my own project should be understood, and also provide the benchmark of success against which my methods should be judged. Here their progress will be reviewed. They can essentially be divided into two broad categories - prediction from structure and prediction from sequence.
+
+\subsection{Prediction from Structure}
+
+Predicting zinc binding from structure takes the atom coordinates of some protein as its input, and produces as output residues in that structure which are believed to be able to bind zinc if zinc were present - generally along with some estimated probability that this should be the case.
+
+This is perhaps of only limited utility, as very often proteins which can bind zinc tightly will have zinc bound when the structure is solved, and so no prediction is required. Where such methods are of use however is when a protein capable of binding zinc is crystallised without zinc being present - presumably because the researchers didn't know it could bind zinc and so did not provide any in the medium. These apoproteins can be scanned by predictors like this to identify unfilled zinc binding sites. \note{NMR invisibility?}
+
+\note{Other uses?}
+
+The earliest attempt at a general purpose prediction algorithm was the Hydrophobic Contrast Function, developed in 1990 \cite{yamashita1990metal} to detect metal binding sites in general. This began from the observation that metal atoms tended to be surrounded by a shell of hydrophilic atoms, which in turn were surrounded by an outer shell of hydrophobic atoms. They developed a function which took as its input a coordinate in space, and returned a measure of this `hydrophobic contrast' at that location. They showed that by scanning every point in the structure on a grid, evaluating the function at every point, and then ranking the points by their score (the function returned values between -1 for inverted contrast and 1 for desired contrast), the highest scoring points would be clustered at sites of metal binding.
+
+This was the first demonstration that a property of metal binding sites could be used to create a predictive model. However it should be noted that it was only tested on structures with metals already present, not on apoproteins, and the initial observation itself was based on a very small number of metal proteins that were available at that time.
+
+\emph{Andrew's Paper}
+
+\emph{MetSite}
+
+\emph{Fold-X}
+
+\emph{Goyal and Mande}
+
+\emph{CHED}
+
+\emph{FEATRUE}
+
+\emph{SitePredict}
+
+\emph{2011 paper}
+
+\subsection{Prediction from Sequence}
+
 %\insertfigure[0.5]{name.eps}{short caption}{long caption}{label}
 % N.B. do not \end{document} at the end of the chapters
