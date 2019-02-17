@@ -132,6 +132,24 @@ Unlike the process of parsing, in which the structures pass through a number of 
 
 Only structural information is saved - the various file annotations that are parsed from the original files are presumed to be properties solely of those original files, and not of any modified versions of them that might exist. So, atom records are saved, along with anything else needed to construct details of the actual structure model - but not titles, deposition dates, resolution etc.
 
-\section{Usage}
+\section{pdb2json}
+
+As already noted, the process of parsing a structure file involves turning the raw filestring (or bytestring) into two successive Python dictionaries, before then being turned into a Python object. Initially this choice of Python dictionary as internal representation was a decision made to make development easier.
+
+However, Python dictionaries have a structure very similar to JSON, a data format that is frequently used for sending data over the web in a very human readable way, as it essentially just nested key-value pairs. It occurred to me, therefore, that atomium was also potentially a tool for turning any PDB structure into JSON, if the data dictionary was simply converted to JSON using Python's built-in \texttt{json} library.
+
+To this end, I created pdb2json. This is a simple, lightweight Django web app which uses atomium to take any PDB code and return the resultant structure as JSON. This is done using a URL - \texttt{/2SOD/} will return the JSON for the PDB 2SOD, for example.
+
+It is currently available at \texttt{https://pdb2json.samireland.com/}.
+
+By default, pdb2json tells atomium to use the .cif representation for parsing, but this can be altered using, for example, \texttt{/2SOD.pdb/}. The structure of the JSON returned will be the same as atomium creates the same data dictionary regardless of file type, but some values might be different. For example, many PDBs have titles etc. in ALL CAPS whereas .cif files use title case, and atom IDs may be numbered slightly different. Generally the actual semantic content should be the same across all file types though.
+
+If the user so wishes, they can get the initial Python dictionary as JSON - the one that is specific to that file type - using \texttt{/2SOD/?file} notation. This is generally of limited interest in the case of .pdb and .mmtf, except as a means of checking the original file contents pre-processing, but in the case of .cif it can be very useful. This is because \emph{every} attribute of the structure will be accessible in this dictionary, so if the subset of attributes atomium pulls out of files to annotate its final representation isn't enough, they can be obtained from this representation. For example, atomium File objects have \texttt{rvalue} and \texttt{rwork} attributes, but there are many supporting metrics for these calculations in the original file.
+
+Obviously, PDB structures can be quite large, and some are extremely large indeed. The user may not wish to download the JSON for an entire structure when they only need a single metric or set of metrics. Therefore, pdb2json allows the user to traverse the keys of the JSON structure using the supplied URL. For example, while \texttt{/2SOD/} will return thr JSON for the entire structure, \texttt{/2SOD/quality/} will return only the \texttt{quality} sub-dictionary that was part of the original JSON object. This traversal can be as deep as the user wishes - \texttt{/2SOD/models/0/non-polymer/O.153/atoms/4382} will return information about a single zinc atom, for example.
+
+Note however that while this will reduce the volume of data that will be sent over the network, on the server the structure is still being fully processed. So this feature can save on bandwidth but not really on request speed.
+
+pdb2json then, is a lightweight web server for providing users with JSON representations of any PDB structure, acting as a thin wrapper around atomium. It was not necessary to the overall project or even to atomium itself, but I felt the ratio of work needed to benefit provided to the wider community was so low that it would be a useful exercise to create. It means that researchers no longer require a PDB parser installed to get basic structural information - just a HTTP client, such as a browser. It is language agnostic - most programming languages will have JSON libraries as part of their standard library, whereas PDB processing libraries like atomium or BioPython are much more specialised pieces of software. And it also means that all structures now have a much more human readable format that is easily viewable.
 
 %%%%%%%%%%%% END %%%%%%%%%%%%
