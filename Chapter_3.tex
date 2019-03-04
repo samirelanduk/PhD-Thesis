@@ -120,6 +120,10 @@ Once the user submits the form, the server receives the datafile, and job ID, an
 
 This page uses the data in local storage to show the user what they have submitted (using the NGL protein viewer for structures \note{and for sequences?}) along with a suitable `this protein is being searched' animation. The page the constantly polls the server with AJAX requests for progress updates on the job (with ever increasing periods of time between requests). The script writes its progress to a log file, which the server answers the AJAX requests with - these are then formatted and presented to the user.
 
+The page receives the log text and outputs it to the screen in a div element, albeit with some modifications. Each line is wrapped in its own div elements to make them appear on their own line, and lines which were indented in the log file are given a particular CSS class to make them indented on screen (as tabs are ignored in HTML).
+
+Lines which begin with an underscore in the log file are not printed to the screen, as these are the lines which contain the identified binding sites. The lines contain, space-separated, the family of the predicted binding site, the residue name and ID of the residues identified, and the `score' they have obtained. These are used to create clickable boxes for each predicted site in the HTML, and to assign each an NGL selection string so that when they are clicked, the 3D view of the protein zooms in to that part of the protein and displays their side chains.
+
 \note{Explain how found binding sites are shown.}
 
 
