@@ -139,3 +139,29 @@ accuracy of 94.2\% and, more informatively, a recall of 60\% - across all sites.
 One of the more recent algorithms for identifying potential zinc binding sites in protein structures is TEMSP \cite{zhao2011structure}. This is actually reminiscent of some of the earlier work on this problem, in that it uses simple geometric patterns of known zinc binding sites - specifically their alpha and beta carbons - to search target structures without any particular machine learning method employed (though there is a certain amount of parameter training). Here the problem is simplified by creating a library of `residue pairs', where for each zinc binding site obtained from the PDB, they store each pairwise combination of liganding residues (actually just certain properties of them, such as alpha-alpha distance etc.) and then search the target protein for these. Once one is found, other template pairs are superimposed on the structure to find additional liganding residues. They used a stricter definition of `true positive' than previous attempts, and still reported a sensitivity of 86.0\% and a selectivity of 95.9\% in their test dataset - barely lower than the values obtained when testing on the training dataset used to refine their parameters. When applying their tool to a dataset of proteins of unknown function, they found some very promising results - finding 186 probable zinc binding sites. \note{So what?} Unfortunately, the online version of this tool is no longer accessible at time of writing.
 
 \subsection{Prediction from Sequence}
+
+\section{Web Technologies}
+
+A major part of this project's utility to the wider scientific community is the presentation of the data and tools created for it to the world. All of them are available via the web, and various web technologies are used to accomplish this.
+
+\subsection{Django}
+
+Django is an open source Python web framework, used to create database-backed web applications \cite{django}. All database population scripts are written in Python, and use the Django Object-Relational Mapping utilities to populate the database.
+
+\subsection{GraphQL}
+
+GraphQL is an API technology and query language which allows users to construct requests for precisely the data they need - no more, no less \cite{graphql}.
+
+Traditionally, web APIs have used the REST archictecture, whereby every meaningful object is given a URL address. The problem that GraphQL seeks to address with REST is that REST APIs often involve overfetching (you get the full representation of an object whether you want it or not) and underfetching (you have to make multiple requests to get the data you need). With GraphQL APIs, you define your objects using a graph of relationships, and then request exactly the data you need.
+
+GraphQL APIs are used here to provide computational access to both the dataset itself, and to the predictive models.
+
+The Python/django library graphene is used here to implement the GraphQL schemas and API services \cite{graphene}.
+
+\subsection{React}
+
+While the web services provide computational access are useful for programmatic access, for browsing the data initially a website frontend is much more useful. In order to avoid duplication of logic, a JavaScript framework which connects to the existing API is used here - React \cite{react}.
+
+React uses individual components to build up a single page web application, and the React router package is used to create individually addressed pages.
+
+Other JavaScript technologies used on the frontend are the 3D macromolecular visualisation package NGL (used for visualising the zinc binding sites) \cite{rose2015ngl} and the charting library highcharts (used to give an overview of the data) \cite{highcharts}.
