@@ -128,11 +128,10 @@ accuracy of 94.2\% and, more informatively, a recall of 60\% - across all sites.
 
 Not all attempts at structural prediction have used straightforward supervised learning. The field of molecular dynamics has made important contributions, through the use of empirical force fields which can describe the attraction that a small molecule should experience towards a region of a protein. One such force field, the Fold-X empirical force field, was adapted for use on single atom ligands such as water and metal atoms \note{cite}. Not only were they able to 'decorate' protein surfaces with identified metal binding sites, but the implied affinity of the binding sites reported by the force field correlated closely with experimentally reported affinities where available.
 
-\emph{geometric approaches - graph theory and templates}
+Simple geometric templates have also been employed to identify metal binding sites. Calcium binding sites have been successfully predicted by simply looking for clusters of oxygen atoms and identifying their centre \cite{deng2006} for example. In 2008, Goyal and Mande built up more complex templates using pairs of residues to identify previously unknown 
+sites.
 
-\emph{Fold-X}
-
-\emph{Goyal and Mande}
+Generally however, the field is dominated by the use of widely used machine learning algorithms. An important development in 2008 showed that decision trees and support vector machines could be used to identify metal binding sites in apo-protein structures - that is, structures solved in the absence of the metal in question \cite{babor2008}. This was an important proof-of-concept as it demonstrated that in the absence of the metal atom, the liganding residues are still sufficnetly close to their liganding conformation to allow them to be identified from atom positions. A similar study in the same year showed that Bayesian classifiers alone could identify zinc binding sites specifically, using only concentric shells of atoms around the site as features \cite{ebert2008}.
 
 \emph{CHED}
 
