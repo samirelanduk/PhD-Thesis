@@ -144,6 +144,12 @@ One of the more recent algorithms for identifying potential zinc binding sites i
 
 \subsection{Prediction from Sequence}
 
+A system for identifying zinc binding residues from the mere sequence of residues it contains is arguably much more useful, as protein sequences are much more readily available. It allows for whole genomes to be scanned for zinc binding proteins. As such, there has been much effort in the past to create techniques for predicting zinc binding from sequence.
+
+The earliest research in this area was largely a `manual' effort, given the small number of sequences available. The discovery of zinc finger proteins in 1985, for example, involved the observation of repeating C...C...H...H patterns in the proteins being studied, and the hypothesis that these were binding zinc \cite{miller1985repetitive}. Similarly, zinc binding in the E6 and E7 subunits of a Papillomavirus was predicted from the observation of cysteine repeats \cite{barbosa1989papillomavirus}. Slightly more complex patterns were later identified, such as the observation that enzymatic zinc binding sites frequently have two residues close to each other in the sequence, and then a third much more distant --- the `short and long spacers` \cite{vallee1989short}. This kind of manual examination of individual protein sequences is obviously not scalable to the vast numbers of protein sequences now available, and can only identify relatively obvious binding sites in any case --- but the same principles that were used in these early studies of characteristic repeats largely underpins the automated techniques now in use.
+
+As the number of sequences grew, identifying zinc binding sites through the use of sequence alignment to known zinc binding sequences became possible. This was used to identify plausible sites in Protein Kinase C \cite{bishop1991identification} and in {\it Giardia lamblia} surface proteins.
+
 \section{Web Technologies}
 
 A major part of this project's utility to the wider scientific community is the presentation of the data and tools created for it to the world. All of them are available via the web, and various web technologies are used to accomplish this.
