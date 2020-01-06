@@ -150,6 +150,12 @@ The earliest research in this area was largely a `manual' effort, given the smal
 
 As the number of sequences grew, identifying zinc binding sites through the use of sequence alignment to known zinc binding sequences became possible. This was used to identify plausible sites in Protein Kinase C \cite{bishop1991identification} and in {\it Giardia lamblia} surface proteins.
 
+One of the first uses of traditional machine learning methods was in 1995, when neural networks were employed to predict zinc finger proteins from sequence data \cite{nakata1995prediction}. They hardcoded the specific C...C...H...H spacer pattern they were looking for into the model, rather than having the model learn it from existing sequence data by encoding it as a binary feature, and also incorporated features for electric charge, hydrophobicity, and side chain types. Overall this was largely successful - they reported an accuracy of 97\%, though for a very specific type of zinc binding sequence that was largely hardcoded in from the start.
+
+This type of specific, previously identified pattern identification has been used numerous times elsewhere too.
+
+
+
 \section{Web Technologies}
 
 A major part of this project's utility to the wider scientific community is the presentation of the data and tools created for it to the world. All of them are available via the web, and various web technologies are used to accomplish this.
