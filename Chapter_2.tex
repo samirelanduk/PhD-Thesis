@@ -152,9 +152,7 @@ As the number of sequences grew, identifying zinc binding sites through the use 
 
 One of the first uses of traditional machine learning methods was in 1995, when neural networks were employed to predict zinc finger proteins from sequence data \cite{nakata1995prediction}. They hardcoded the specific C...C...H...H spacer pattern they were looking for into the model, rather than having the model learn it from existing sequence data by encoding it as a binary feature, and also incorporated features for electric charge, hydrophobicity, and side chain types. Overall this was largely successful - they reported an accuracy of 97\%, though for a very specific type of zinc binding sequence that was largely hardcoded in from the start.
 
-This type of specific, previously identified pattern identification has been used numerous times elsewhere too.
-
-
+One of the ultimate advantages of sequence prediction over structure prediction is that it allows you to quickly and efficiently search very large datasets for evidence of zinc binding. Again, early efforts relied on sequence alignment --- in 2004 every then-known metal binding sequence was encoded as a series of residue codes and gap sizes (referred to as `metal binding patterns), and these were then BLAST searched against entire genomes of various species \cite{andreini2004hint}. The same team would go on to study zinc binding in the human genome specifically using a refined version of this technique and assert, based on this method, that the human genome encodes 2,800 +/- 400 zinc binding proteins --- about 10\% \cite{andreini2006counting}. Shortly afterwards they expanded their analysis to representative genomes from eukaryotes, prokaryotes and archaea, and found that this proportion varies from 4\% to 10\% --- with eukaryotes having more due to higher numbers of regulatory proteins \cite{passerini2007predicting}.
 
 \section{Web Technologies}
 
