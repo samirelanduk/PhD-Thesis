@@ -25,6 +25,20 @@
 \label{Chapter4}
 \lhead{Chapter 4. \emph{Predicting Zinc Binding Sites in Structures}} % Write in your own chapter title to set the page header
 
+The aim of this component of the PhD is to create a system which ultimately is quite simple --- it would take as its input a protein structure, and output a list of zero or more residue combinations which are predicted to form a zinc binding site, with an accompanying probability.
+
+This system is a machine learning system - it uses binary classifiers trained on the large dataset of zinc binding sites described in the previous chapter which `learn' what zinc binding sites look like form that data.
+
+This chapter will describe the approach taken to solving this problem, the models created, the archietcture of the system from the user's point of view, and how the models are accessed and used.
+
+\section{Families}
+
+The first consideration when creating a machine learning classifier is the features that will be used to represent the inputs. Classifiers take their inputs as a vector of numbers.
+
+
+\section{Old}
+
+
 Before applying machine learning methods to the dataset, it is worth stopping to see if there are any straightforward identifiable geometric patterns that occur in the zinc binding stuctures gathered, which might be used as templates to search in unknown structures.
 
 There is a wide variety of different binding modes and residue composition, as has been shown, so it is not at first apparent that there should be any usable geometric templates that can be extracted from these. However ZincBind divides the binding sites among families, each with their own residue makeup, and it seems much more plausible that there may be consistent within families. That is, while there may not be a single `zinc binding pattern', there may be a `H3' pattern for example, or a `C2H2' pattern.
@@ -36,7 +50,7 @@ Specifically, in this chapter I am interested in patterns of alpha and beta carb
    \item All residues contain alpha carbons, and all but one contain beta carbons. This means that essentially all residues can be searched for the resultant pattern. While this is not especially useful for the specific use case of finding native zinc binding sites, it \emph{is} useful for zinc binding site engineering. The pattern search could identify all residues which fit a given pattern, and if the residue identities also match it can be flagged as a possible zinc binding site, and if they don't, it can be flagged as a site which could feasibly be mutated to become one.
 \end{enumerate}
 
-\section{Profile Generation}
+\subsection{Profile Generation}
 
 The initial step is to go through the ZincBind dataset and create a `profile' for each family. As some of the smaller families are quite esoteric, with large numbers of residues and metals, I decided to limit the scan for the smaller, more highly represented families. Specifically, the initial families were H3 (chosen because carbonic anhydrase is in this family, which is a frequent target of protein engineering), C4 (the most common family), C2H2, and C3H1 (both common families, important in zinc fingers).
 
@@ -51,5 +65,3 @@ The number of measurements needed for a given binding site will increase with th
 This requires a certain consistency in which residues are labelled as 1, 2 etc. In this system, the residues of a given type are ordered by alpha carbon distance to the metal, and numbered accordingly.
 
 Each binding site can therefore be modelled a n-dimensional vector, where n is the number of measurements for that residue type. After iterating through the database then, the profile for a given binding site will be a M x N matrix.
-
-These need to be clustered in order to create a profile that can actually be used to search new structures. The vectors would, it was hoped, cluster in regions representing a `typical' residue arrangement for that type of family.
