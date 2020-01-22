@@ -33,7 +33,18 @@ This chapter will describe the approach taken to solving this problem, the model
 
 \section{Families}
 
-The first consideration when creating a machine learning classifier is the features that will be used to represent the inputs. Classifiers take their inputs as a vector of numbers.
+The first consideration when creating a machine learning classifier is the features that will be used to represent the inputs. Classifiers take their inputs as a vector of numbers and then try to assign the vector to one of two (in the case of binary classifiers) categories. Because the aim here is not just to label an entire protein as either zinc binfing or not zinc binding, but rather to identify the actual zinc binding residues, the proteins themselves are not the inputs - potential zinc binding sites within the protein are.
+
+The main approach is to use combinations of residues as the inputs. That is all plausible combinations of residues will be looked at in turn, turned into a vector, and passed to the model.
+
+Rather than create a single model, the decision was taken early on to create a model for each family. That is, there is a model which looks at sets of three histidines and tries to determine if it is a H3 binding site, a model which looks at sets of four cysteines and tries to determine if it is a C4 binding site, and so on. The main reason for this is that the geometric spacing of residues varies widely between different families, but not within families, which should allow a model to more easily learn what constitutes a likely binding site of a particular family. \note{Definitely need to show this in chapter 3!}
+
+Another advnatage of this approach is a purely practical one. All the possible H3 binding sites in a protein are found by taking all combinations of three histidine residues, and while the combinatorics of this can lead to large numbers of potential sites to check, it is vastly smaller than the combinations of \emph{all} residues that would need to be checked if the model was suppoed to look for a generic zinc binding sites --- an infeasible task for all but the smallest of proteins.
+
+\section{Datasets}
+A training dataset was created for each family, using the ZincBindDB API. For each family, all zinc binding sites of that family, belonging to PDBs with a resolution equal to or better than 2 {\AA} were identified --- this quality cutoff being used so that the interatomic distances used in the making of the dataset could be relied upon.
+
+For each site, the PDB file was downloaded.
 
 
 \section{Old}
@@ -63,5 +74,3 @@ The key attributes to determine for any given site are thos eattributes which wo
 The number of measurements needed for a given binding site will increase with the number of residues, because all combinations need to be considered. For three residue sites such as H3, there are three measurements for the alpha carbons (CA1-CA2, CA2-CA3, CA1-CA3) and three for the beta carbons (CB1-CB2, CB2-CB3, CB1-CB3), for a total of six measurements. For four residue sites, there are six alpha measurements and six beta measurements \note{Give combinations formula explanation}.
 
 This requires a certain consistency in which residues are labelled as 1, 2 etc. In this system, the residues of a given type are ordered by alpha carbon distance to the metal, and numbered accordingly.
-
-Each binding site can therefore be modelled a n-dimensional vector, where n is the number of measurements for that residue type. After iterating through the database then, the profile for a given binding site will be a M x N matrix.
