@@ -30,6 +30,8 @@ It will not provide details of specific implementations of them used in this pro
 
 \section{Machine Learning}
 
+\subsection{Principles}
+
 This project aims ultimately to create a predictor - something which can take either a protein structure or a protein sequence, and determine where, if anywhere, are zinc binding regions.
 
 Machine learning is the use of existing data to create predictive models that can take new data and make inferences about it. It `learns' the characteristics of the existing dataset and uses this to predict certain things about the new data. This can be `unsupervised', where the model simply breaks the data into clusters based on its internal structure, or it can be `supervised', where the existing data is labeled with some correct output, and the model learns how to predict the output based on the input characteristics. If the output is a discrete category, this is classification; if it is a continuous value, this is regression.
@@ -58,11 +60,13 @@ However these two metrics exist in a balance, with improvements in one causing a
 
 Usually it is convenient to have a single value representing the effectiveness of the model, which is done using the F1 Score. This is simply the`harmonic average' of precision and recall - the ratio of their product and sum, multiplied by two.
 
-Another single value measure of model effectiveness is the Matthew's Correlation Coefficient, or MCC. \note{Explain!}
+Another single value measure of model effectiveness is the Matthew's Correlation Coefficient, or MCC. This takes into account all four values in the confusion matrix, and has certain advantages over the F1 score in that it "which produces a high score only if the prediction obtained good results in all of the four confusion matrix categories" \note{cite 10.1186/s12864-019-6413-7}. \note{Give formula}
 
 There are metrics which show not how effective the model is in its current state, but how its ability to distinguish one class from another varies over different thresholds. Most classification algorithms can assign a probability of being in one class or the other, and the actual prediction is made by setting some threshold - if the probability is above this threshold, the positive case is predicted. If not, the negative case is predicted. A ROC Curve will show the model's effectiveness changes as this threshold is changed, by plotting false positive rate against true positive rate for every threshold value (to some given resolution). Purely random classifiers will produce a diagonal line - as the threshold is increased, both true positive predictions and false positive predictions will increase by equal amounts because the model can't actually distinguish one class from another at all. The better the model is at making this distinction however, the more this line will curve into the top-left corner, because true positives will increase much faster than false positives in a `good' model.
 
 This graphical ROC curve can be represented in a single metric called the AUC - area under the curve. As the name suggests, this is the area underneath the ROC curve, which will be 0.5 for a purely random model, and 1 for a perfect model. The reason a perfect model has an AUC of 1, is because a perfect model will have some threshold which produces a true positive rate of 1 and a false positive rate of 0, meaning it will touch the top left corner of the plot.
+
+Another means of evaluating a model is examine how its performance increases with increases in training set size --- learning curves. In this analysis, the model is trained in random subsets of the training data of increasing size, and the training and test scores taken at each stage --- the score used depends on what is being assessed. This is useful in assessing the rate of convergence (how the model's training performance is approaching the test performance).
 
 \subsection{Supervised Learning Algorithms}
 
@@ -154,7 +158,7 @@ One of the first uses of traditional machine learning methods was in 1995, when 
 
 One of the ultimate advantages of sequence prediction over structure prediction is that it allows you to quickly and efficiently search very large datasets for evidence of zinc binding. Again, early efforts relied on sequence alignment --- in 2004 every then-known metal binding sequence was encoded as a series of residue codes and gap sizes (referred to as `metal binding patterns'), and these were then BLAST searched against entire genomes of various species \cite{andreini2004hint}. The same team would go on to study zinc binding in the human genome specifically using a refined version of this technique and assert, based on this method, that the human genome encodes 2,800 +/- 400 zinc binding proteins --- about 10\% \cite{andreini2006counting}. Shortly afterwards they expanded their analysis to representative genomes from eukaryotes, prokaryotes and archaea, and found that this proportion varies from 4\% to 10\% --- with eukaryotes having more due to higher numbers of regulatory proteins \cite{passerini2007predicting}.
 
-Studies using traditional machine learning techniques have tyoically used a mix of simpler methods such as Support Vector Machines and `deep' methods, such as neural networks and their variants. Both SVM and neural networks were used to predict the metal binding cysteine and histidine residues of sequences by the same group that developed the 
+Studies using traditional machine learning techniques have typically used a mix of simpler methods such as Support Vector Machines and `deep' methods, such as neural networks and their variants. Both SVM and neural networks were used to predict the metal binding cysteine and histidine residues of sequences by the same group that developed the metal binding pattern concept --- though it relies on the sites present in the searched sequence belonging to previously identified motifs, as it is these previously identified patterns that their models were trained with \cite{passerini2006identifying}.
 
 \section{Web Technologies}
 
