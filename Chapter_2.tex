@@ -157,12 +157,17 @@ accuracy of 94.2\% and, more informatively, a recall of 60\% - across all sites.
 
 Generally however, the field is dominated by the use of widely used machine learning algorithms. An important development in 2008 showed that decision trees and support vector machines could be used to identify metal binding sites in apo-protein structures - that is, structures solved in the absence of the metal in question \cite{babor2008}. This was an important proof-of-concept as it demonstrated that in the absence of the metal atom, the liganding residues are still sufficnetly close to their liganding conformation to allow them to be identified from atom positions. A similar study in the same year showed that Bayesian classifiers alone could identify zinc binding sites specifically, using only concentric shells of atoms around the site as features \cite{ebert2008}.
 
+
 \emph{CHED}
 
 \emph{FEATRUE}
 
 \emph{SitePredict}
 
+
+There has also been some attention given to the problem of detecting half binding sites --- regions of a protein chain's surface which would form part of a binding site if another half binding site is present. In 2011 the mutation in the complement factor H protein which causes them aggregate was investigated by a number of experimental means, as well as with a bioinformatics approach \cite{nan2011zinc}. Here the approach was largely one of molecular modeling - creating multiple dimers of the protein in various conformations and looking for arrangements in which there was no steric clash and in which an arrangement of residues is made which could bind zinc (they used METSITE for this). While they didn't find a definitive zinc binding site in this way, they did rule out a site which they had strongly suspected of being responsible beforehand. Note also that this is a search for a full zinc binding site between two specific proteins --- it is not a search for a half binding site on one protein. That is, it relied on knowing what the other `'half' of the binding site would be, at least at the whole protein level.
+
+There have also been some purely experimental investigations in this phenomenon, such as the demonstration that zinc mediates the oligomerisation of the Alzheimer's protein Amyloid Precursor Protein, shown through FRET analysis \cite{mayer2014novel}. In general however, the examination of finding half binding sites in protein structures has been very understudied.
 
 
 
