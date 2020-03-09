@@ -141,35 +141,21 @@ As has been noted, while much attention has been paid to predicting whether a re
 
 The most recent purely geometric approach to predicting metal binding is from 2019, which uses known metal geometry rules rather than a survey of known protein structures particularly \cite{sciortino2019}. Their method, called GaudiMM, is notable in that after making the side chains in the test set `flexible', their success rate only slightly decreased - an important property of any system that proposes to find metal binding sites in apoprotein structures.
 
-The research outlined above did not use machine learning techniques, but rather simple geometric templates and other rules based on observed properties of zinc and other metal binding sites in proteins. What distinguishes them from those which do use machine learning is not the use of geometry as such --- geometric attributes are often part of the featureset fed to machine learning algorithms --- but rather the use of a human to determine what features to pay attention to. Machine learning algorithms by contrast, while they vary widely in implementation details, are generally left to determine by themselves what features are importand and how to use the data given to them to classify objects.
+The research outlined above did not use machine learning techniques, but rather simple geometric templates and other rules based on observed properties of zinc and other metal binding sites in proteins. What distinguishes them from those which do use machine learning is not the use of geometry as such --- geometric attributes are often part of the featureset fed to machine learning algorithms --- but rather the use of a human to determine what features to pay attention to. Machine learning algorithms by contrast, while they vary widely in implementation details, are generally left to determine by themselves what features are import and and how to use the data given to them to classify objects.
 
 
+MetSite was one of the earliest use of machine learning techniques to predict binding sites as we would understand the term today, in 2004 \cite{sodhi2004predicting}. They used artificial neural networks to detect metal binding sites in low-resolution structural models, such as those generated computationally from sequence data. They set themselves a target of having a false positive rate no higher than 5\%, and using this threshold were able to get an  accuracy of 94.2\% and, more informatively, a recall of 60\% - across all sites. These figures fall to 84\% and 39\% for specific metals, from which they infer that many metals in the structures used are labelled incorrectly. They show that their model can predict metal binding in proteins of unknown function, and in models generated computationally, because the features they use don't use information from the precise positions of liganding atoms, but from outer residues and secondary structure.
 
+An important development in 2008 showed that decision trees and support vector machines could be used to identify metal binding sites in apo-protein structures - that is, structures solved in the absence of the metal in question \cite{babor2008}. This was an important proof-of-concept as it demonstrated that in the absence of the metal atom, the liganding residues are still sufficnetly close to their liganding conformation to allow them to be identified from atom positions. A similar study in the same year showed that Bayesian classifiers alone could identify zinc binding sites specifically, using only concentric shells of atoms around the site as features \cite{ebert2008}. This latter paper makes the point that Bayesian classifiers have a distinct advantage over more complex machine learning methods in that the model is less of a black box --- you can follow the decision making of the classifier more easily.
 
+Another use of Random Forest from that same year also produced reasonably encouraging results --- an AUC of 0.8 \cite{bordner2008}. Random Forest is particularly suited to measuring the importance of the features that are given to the model, and in this case they found that accessible surface area and the level of evolutionary conservation of the residues in question were particularly important properties to examine. This was also another example of a model who's efficacy remained largely the same when apostructures were examined. This finding was repeated in a similar piece of research in 2012 \cite{zheng2012}.
 
-
-MetSite was one of the earliest use of machine learning techniques to predict binding sites as we would understand the term today, in 2004 \cite{sodhi2004predicting}. They used artificial neural networks to detect metal binding sites in low-resolution structural models, such as those generated computationally from sequence data. They set themselves a target of having a false positive rate no higher than 5\%, and using this threshold were able to get an 
-accuracy of 94.2\% and, more informatively, a recall of 60\% - across all sites. These figures fall to 84\% and 39\% for specific metals, from which they infer that many metals in the structures used are labelled incorrectly. They show that their model can predict metal binding in proteins of unknown function, and in models generated computationally, because the features they use don't use information from the precise positions of liganding atoms, but from outer residues and secondary structure.
-
-
-
-
-
-Generally however, the field is dominated by the use of widely used machine learning algorithms. An important development in 2008 showed that decision trees and support vector machines could be used to identify metal binding sites in apo-protein structures - that is, structures solved in the absence of the metal in question \cite{babor2008}. This was an important proof-of-concept as it demonstrated that in the absence of the metal atom, the liganding residues are still sufficnetly close to their liganding conformation to allow them to be identified from atom positions. A similar study in the same year showed that Bayesian classifiers alone could identify zinc binding sites specifically, using only concentric shells of atoms around the site as features \cite{ebert2008}.
-
-
-\emph{CHED}
-
-\emph{FEATRUE}
-
-\emph{SitePredict}
+There have been uses of deep learning in recent years however, with encouraging results. In 2019 a system in which an ensemble of different classifiers were used as the inputs to a neural network was developed quite successfully --- demonstrating the power of using multiple classifiers trained in different ways \cite{li2019}.
 
 
 There has also been some attention given to the problem of detecting half binding sites --- regions of a protein chain's surface which would form part of a binding site if another half binding site is present. In 2011 the mutation in the complement factor H protein which causes them aggregate was investigated by a number of experimental means, as well as with a bioinformatics approach \cite{nan2011zinc}. Here the approach was largely one of molecular modeling - creating multiple dimers of the protein in various conformations and looking for arrangements in which there was no steric clash and in which an arrangement of residues is made which could bind zinc (they used METSITE for this). While they didn't find a definitive zinc binding site in this way, they did rule out a site which they had strongly suspected of being responsible beforehand. Note also that this is a search for a full zinc binding site between two specific proteins --- it is not a search for a half binding site on one protein. That is, it relied on knowing what the other `'half' of the binding site would be, at least at the whole protein level.
 
 There have also been some purely experimental investigations in this phenomenon, such as the demonstration that zinc mediates the oligomerisation of the Alzheimer's protein Amyloid Precursor Protein, shown through FRET analysis \cite{mayer2014novel}. In general however, the examination of finding half binding sites in protein structures has been very understudied.
-
-
 
 \subsection{Prediction from Sequence}
 
@@ -184,6 +170,15 @@ One of the first uses of traditional machine learning methods was in 1995, when 
 One of the ultimate advantages of sequence prediction over structure prediction is that it allows you to quickly and efficiently search very large datasets for evidence of zinc binding. Again, early efforts relied on sequence alignment --- in 2004 every then-known metal binding sequence was encoded as a series of residue codes and gap sizes (referred to as `metal binding patterns'), and these were then BLAST searched against entire genomes of various species \cite{andreini2004hint}. The same team would go on to study zinc binding in the human genome specifically using a refined version of this technique and assert, based on this method, that the human genome encodes 2,800 +/- 400 zinc binding proteins --- about 10\% \cite{andreini2006counting}. Shortly afterwards they expanded their analysis to representative genomes from eukaryotes, prokaryotes and archaea, and found that this proportion varies from 4\% to 10\% --- with eukaryotes having more due to higher numbers of regulatory proteins \cite{passerini2007predicting}.
 
 Studies using traditional machine learning techniques have typically used a mix of simpler methods such as Support Vector Machines and `deep' methods, such as neural networks and their variants. Both SVM and neural networks were used to predict the metal binding cysteine and histidine residues of sequences by the same group that developed the metal binding pattern concept --- though it relies on the sites present in the searched sequence belonging to previously identified motifs, as it is these previously identified patterns that their models were trained with \cite{passerini2006identifying}.
+
+
+
+
+
+In the past couple of years the use of deep learning techniques has begun to have a more pronounced effect on the field. In 2019 an alternative to molecular docking --- where the binding affinity of a ligand and protein is calculated by simulating the correct pose/position of the ligand on the protein, and then calculating the energy of binding from that position --- was proposed called DeepAffinity \cite{karimi2019}. This uses mostly recurrent neural networks to remove the need for these separate steps, and simply predicts affinity as a function of the structure alone.
+
+
+
 
 \section{Web Technologies}
 
