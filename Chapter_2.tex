@@ -46,27 +46,6 @@ However, too many features can be a problem. The more dimensions in the vector s
 
 Once the dataset has been processed, models must be trained. The simplest approach would be to give the model the entire dataset and let it learn from that. However, this can lead to a problem called overfitting, where the model learns details of the training set that are irrelevant - it learns the training set, but is not generalisable to objects not in the training set. To overcome this, the dataset is generally split into a training set and test set, with the latter being held in reserve to assess the model after it has been trained on the training set. If the model is overfit, it will perform much worse on the test set than the training set - if not, the performance on each will be broadly equivalent.
 
-\subsection{Evaluation}
-
-The test set is held in reserve so that the effectiveness of the model can be evaluated, but here `effectiveness' can be defined in a variety of ways. For this purpose, the model can produce one of two outcomes, true or false, so all of the test results fall into one of four categories - true positives (correctly identified as a binding site), false negatives (was a binding site, but not detected), false positives (not actually a binding site, but wrongly identified as one), and true negatives (not a binding site, not identified as one). The first and last categories are the `good' ones, the other two the errors.
-
-The simplest means of grading a model is with accuracy - the total number of correct predictions (true positives and true negatives) as a proportion of all test inputs. This can be a misleading metric however, if the dataset is class-imbalanced - that is, if one class is much more prevalent than the others. This will be the case in this project, as non-zinc binding regions vastly outnumber zinc binding regions. Accuracy is misleading here, because a model which just always predicts the more-prevalent class can get a very high accuracy, despite being completely useless as a predictor of rare states.
-
-Similarly the error rate - the total number of incorrect predictions (false negatives and false positives) as a proportion of all assignments - suffers from the same problem, and should be treated with the same caution in a class-imbalanced problem like this.
-
-Two more meaningful metrics are precision and recall. Precision is the number of true positives, as a proportion of all predicted positives - that is, how many positive predictions were correct? Recall (also referred to as sensitivity) is the inverse, the number of true positives, as a proportion of all actual positives - that is, how many actual positives were identified? A high precision means that false positives are being kept down, with the reported positive cases being mostly correct. A high recall means that false negatives are being kept down, with most of the positive cases being identified.
-
-However these two metrics exist in a balance, with improvements in one causing a decline in the other. The more `eager' the model is to assign a positive prediction to an input, the more of them will be identified and the higher recall will be - but a smaller proportion of the predicted positives will be correct, lowering precision. Likewise, the more resistant the model is to predictive a positive label, the higher precision will be, but the lower recall will be.
-
-Usually it is convenient to have a single value representing the effectiveness of the model, which is done using the F1 Score. This is simply the`harmonic average' of precision and recall - the ratio of their product and sum, multiplied by two.
-
-Another single value measure of model effectiveness is the Matthew's Correlation Coefficient, or MCC. This takes into account all four values in the confusion matrix, and has certain advantages over the F1 score in that it "which produces a high score only if the prediction obtained good results in all of the four confusion matrix categories" \note{cite 10.1186/s12864-019-6413-7}. \note{Give formula}
-
-There are metrics which show not how effective the model is in its current state, but how its ability to distinguish one class from another varies over different thresholds. Most classification algorithms can assign a probability of being in one class or the other, and the actual prediction is made by setting some threshold - if the probability is above this threshold, the positive case is predicted. If not, the negative case is predicted. A ROC Curve will show the model's effectiveness changes as this threshold is changed, by plotting false positive rate against true positive rate for every threshold value (to some given resolution). Purely random classifiers will produce a diagonal line - as the threshold is increased, both true positive predictions and false positive predictions will increase by equal amounts because the model can't actually distinguish one class from another at all. The better the model is at making this distinction however, the more this line will curve into the top-left corner, because true positives will increase much faster than false positives in a `good' model.
-
-This graphical ROC curve can be represented in a single metric called the AUC - area under the curve. As the name suggests, this is the area underneath the ROC curve, which will be 0.5 for a purely random model, and 1 for a perfect model. The reason a perfect model has an AUC of 1, is because a perfect model will have some threshold which produces a true positive rate of 1 and a false positive rate of 0, meaning it will touch the top left corner of the plot.
-
-Another means of evaluating a model is examine how its performance increases with increases in training set size --- learning curves. In this analysis, the model is trained in random subsets of the training data of increasing size, and the training and test scores taken at each stage --- the score used depends on what is being assessed. This is useful in assessing the rate of convergence (how the model's training performance is approaching the test performance).
 
 \subsection{Supervised Learning Algorithms}
 
@@ -105,6 +84,49 @@ There are variants of the artificial neural network (ANN) model outlined above w
 Another variant is the Recurrent Neural Network (RNN). In standard neural networks, the input data is unordered, and each input is treated in isolation - the network `forgets' what it has just done and treats each input like it was the first. However often datasets have inherent order, and knowledge of what the last input was classified as (or what the last n classifications were) contains important, usable information for classifying the current input. Recurrent neural networks are usually used for sequential data therefore, and are therefore of use in dealing with biological sequences (see below). They operate by adding an extra term relating to previously classified inputs. \note{Explain LSTMs}
 
 Deep Learning is a kind of representational learning - the model itself is learning the features in the input space that are important. This can be seen when processing images - the model's first layer may look for low-level properties of the image, such as regions of high contrast representing borders, the next layer may look at simple combinations of these, and later layers will be sensitive to more high level combinations of visual features. This is inspired by - though does not work in precisely the same way as - the mammalian visual cortex.
+
+\subsection{Evaluation}
+
+A trained model will (in this case) map potential binding sites to one of two categories --- zinc binding or not zinc binding. To determine how useful a model is, or if it still needs improving, there needs to be a measure of how well the model is performing. There are a number of metrics for determining model performance.
+
+To evaluate the model, a number of test inputs are given to the model, and for this purpose, the model can produce one of two outcomes, true or false, so all of the test results fall into one of four categories - true positives (correctly identified as a binding site), false negatives (was a binding site, but not detected), false positives (not actually a binding site, but wrongly identified as one), and true negatives (not a binding site, not identified as one). The first and last categories are the ones we want to optimise for, the other two the errors.
+
+The simplest means of grading a model is with accuracy - the total number of correct predictions (true positives and true negatives) as a proportion of all test inputs. This can be a misleading metric however, if the dataset is class-imbalanced - that is, if one class is much more prevalent than the others. This will be the case in this project, as non-zinc binding regions vastly outnumber zinc binding regions. Accuracy is misleading here, because a model which just always predicts the more-prevalent class can get a very high accuracy, despite being completely useless as an identifier of rare states.
+
+Similarly the error rate - the total number of incorrect predictions (false negatives and false positives) as a proportion of all assignments - suffers from the same problem, and should be treated with the same caution in a class-imbalanced problem like this.
+
+Two more meaningful metrics are precision and recall. Precision is the number of true positives, as a proportion of all predicted positives - that is, how many positive predictions were correct? Recall (also referred to as sensitivity) is the inverse, the number of true positives, as a proportion of all actual positives - that is, how many actual positives were identified? A high precision means that false positives are being kept down, with the reported positive cases being mostly correct. A high recall means that false negatives are being kept down, with most of the positive cases being identified.
+
+However these two metrics exist in a balance, with improvements in one causing a decline in the other. The more `eager' the model is to assign a positive prediction to an input, the more of them will be identified and the higher recall will be - but a smaller proportion of the predicted positives will be correct, lowering precision. Likewise, the more resistant the model is to predictive a positive label, the higher precision will be, but the lower recall will be.
+
+Another important metric is specificity, often contrasted with recall/sensitivity. This is the proportion of inputs the model reports as negative which are actually negative, and is a measure of the model's ability to correctly ignore negatives.
+
+
+
+
+
+
+
+Usually it is convenient to have a single value representing the effectiveness of the model, which is done using the F1 Score. This is simply the`harmonic average' of precision and recall - the ratio of their product and sum, multiplied by two.
+
+Another single value measure of model effectiveness is the Matthew's Correlation Coefficient, or MCC. This takes into account all four values in the confusion matrix, and has certain advantages over the F1 score in that it "produces a high score only if the prediction obtained good results in all of the four confusion matrix categories" \note{cite 10.1186/s12864-019-6413-7}. \note{Give formula}
+
+
+
+
+There are metrics which show not how effective the model is in its current state, but how its ability to distinguish one class from another varies over different thresholds. Most classification algorithms can assign a probability of being in one class or the other, and the actual prediction is made by setting some threshold - if the probability is above this threshold, the positive case is predicted. If not, the negative case is predicted. A ROC Curve will show the model's effectiveness changes as this threshold is changed, by plotting false positive rate against true positive rate for every threshold value (to some given resolution). Purely random classifiers will produce a diagonal line - as the threshold is increased, both true positive predictions and false positive predictions will increase by equal amounts because the model can't actually distinguish one class from another at all. The better the model is at making this distinction however, the more this line will curve into the top-left corner, because true positives will increase much faster than false positives in a `good' model.
+
+This graphical ROC curve can be represented in a single metric called the AUC - area under the curve. As the name suggests, this is the area underneath the ROC curve, which will be 0.5 for a purely random model, and 1 for a perfect model. The reason a perfect model has an AUC of 1, is because a perfect model will have some threshold which produces a true positive rate of 1 and a false positive rate of 0, meaning it will touch the top left corner of the plot. Again this is a measure of how easy it is for the model to separate the two classes.
+
+Another means of evaluating a model is examine how its performance increases with increases in training set size --- learning curves. In this analysis, the model is trained in random subsets of the training data of increasing size, and the training and test scores taken at each stage --- the score used depends on what is being assessed. This is useful in assessing the rate of convergence (how the model's training performance is approaching the test performance) and in determining whether a model would benefit from more training data.
+
+Another pair of properties of models that is important to monitor is their bias and variance. These are both measures of the inadequacy of the model, but represent different things. A model's bias is the error that results from it making incorrect assumptions about the thing being modeled --- it might be too simplistic for example. Variance by contrast is error caused by being too sensitive to the specific data points used to train it. \note{How do you measure?} 
+
+This is related to the concepts of underfitting and overfitting respectively. A model which is underfit does not have enough parameters to properly represent the function it is modeling, and a model that is overfit is too attuned to the training data, which is after all only a sample. An overfit model will perform very well on the data it was trained with, but poorly on inputs it hasn't seen before --- it has `learned its training set.' A common way around this is to train the model on a subset of the available data --- typically around 80\% --- and then measure the model's performance on the remaining test set. \note{Again, how to measure?}
+
+Any measures taken to reduce overfitting are called regularisation. \note{For example?}
+
+
 
 
 \section{Machine Learning to Predict Zinc Binding}
