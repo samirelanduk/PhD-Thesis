@@ -31,6 +31,18 @@ This system is a machine learning system - it uses binary classifiers trained on
 
 This chapter will describe the approach taken to solving this problem, the models created, the archietcture of the system from the user's point of view, and how the models are accessed and used.
 
+
+\subsection{From Chapter 2}
+
+The inputs and outputs are more open to interpretation however. So far I have framed the problem in terms of entire proteins - the input is an entire protein structure or an entire protein sequence, and the output is the number and location of the zinc binding site(s) that may be present. However this is difficult to translate into machine learning concepts, which is best suited to mapping input objects to either discrete classes or single continuous values. It is not really practical to represent `the number and location of the zinc binding site(s) that may be present' as a category or a number, so instead the problem will be re-framed so that the input is some sub-component of the protein, and the output is a binary class - `yes that component is a zinc binding region` or `no that region is not a zinc binding region'. The problem is therefore a classification problem, with two classes. When a protein is given, it is broken into its various components, each component is run through the model which predicts it as either zinc binding or not zinc binding, and then the net result for the protein as a whole is the list of components that are predicted as zinc binding.
+
+But what should be the components? What inputs will actually be passed to the model? For protein structures, one obvious possibility is simply location in space - every point within the three-dimensional structure is taken (in some specified resolution grid) and passed to the model as an input, which assigns that location a predictive label. This would be comprehensive but time consuming, as there would be many points to check - the number of points could be limited to the protein surface, but there would still be a lot. Another possible means of breaking the structure into components would be to take all the combinations of residues that are known to bind zinc, and treat these as inputs - there could again be very many of these, but fewer than if every point in space were checked. For sequences, there is no equivalent to checking every point in space, as this information is obviously not available and residues nearby in space are not necessarily nearby in sequence. However using the combinations of zinc binding residues is still applicable to sequences.
+
+
+
+
+
+
 \section{Families}
 
 The first consideration when creating a machine learning classifier is the features that will be used to represent the inputs. Classifiers take their inputs as a vector of numbers and then try to assign the vector to one of two (in the case of binary classifiers) categories. Because the aim here is not just to label an entire protein as either zinc binfing or not zinc binding, but rather to identify the actual zinc binding residues, the proteins themselves are not the inputs - potential zinc binding sites within the protein are.
