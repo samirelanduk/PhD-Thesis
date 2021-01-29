@@ -88,33 +88,107 @@ Binding sites and groups form two components of the three-part hierarchy of data
 
 As already noted, the creation of this dataset was intended to serve both as the primary dataset of this project, and as a publicly available resource. This resource is called ZincBind, and is publicly available.
 
-The database is accessible via a GraphQL API, which allows any specific object, or set of related objects, to be requested in a single HTTP request. This is available at \url{api.zincbind.net} and is the primary means of obtaining data from ZincBind in an automated fashion. As outlined in chapter 2, this is created using the Python web framework Django (particularly its Object Relational Management system) and the GraphQL library graphene.
+The database is accessible via a GraphQL API, which allows any specific object, or set of related objects, to be requested in a single HTTP request (see Figure ~\ref{fig:zincbind-api-example}). This is available at \url{api.zincbind.net} and is the primary means of obtaining data from ZincBind in an automated fashion. As outlined in chapter 2, this is created using the Python web framework Django (particularly its Object Relational Management system) and the GraphQL library graphene.
 
-More accessibly for casual browsing, there is also a website available at \url{zincbind.net}
-accessible at \url{zincbind.net}. This is a lightweight web frontend that interacts with the database via the GraphQL API and presents it to the user graphically. It is a responsive, mobile-first layout created with the front-end framework reach, that adapts to different screen sizes.
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-api-example.eps}
+\caption{\label{fig:zincbind-api-example} An example of a ZincBind GraphQL API query
+--- in this case for a \texttt{PDB} object,
+here requesting all the zinc binding sites within that \texttt{PDB} --- there is
+one in this case. In this case the fields \texttt{id} and \texttt{family} are
+requested for each, though they also have other fields.}
+\end{figure}
 
-The home page contains a short, clear statement of what ZincBind is (a ``database of zinc binding sites, automatically generated from the Protein Data Bank") as well as a brief overview of its key metrics - number of unique binding sites, total number of binding sites, and the number of PDB files the sites are derived from.
+More accessibly for casual browsing, there is also a website available at \url{zincbind.net}. This is a lightweight web frontend that interacts with the database via the GraphQL API and presents it to the user graphically. It is a responsive, mobile-first layout created with the front-end framework reach, that adapts to different screen sizes.
+
+The home page (see Figure ~\ref{fig:zincbind-homepage}) contains a short, clear statement of what ZincBind is (a ``database of zinc binding sites, automatically generated from the Protein Data Bank") as well as a brief overview of its key metrics - number of unique binding sites, total number of binding sites, and the number of PDB files the sites are derived from.
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-homepage.eps}
+\caption{\label{fig:zincbind-homepage} The home page of ZincBind, showing the
+overview statistics in the top-left, and the quick search text box in the top right.
+The menu bar at the top collapses on small screen widths, making them accessible via a
+drop-down menu on mobile.}
+\end{figure}
 
 Searching of the database can be done in one of four ways. Firstly, from the home page, the user can enter a search term that will be used to search multiple PDB fields at once - title, PDB code, classification etc. This is for users who just want to find entries that have any relation to a given term at all, and provides an easy, low-friction way for a user to submit a search immediately.
 
-Secondly, the user can navigate to the Advanced Search page, where they can specify a more precise search by one or more PDB fields. This also allows searching by numeric cutoffs, such as for PDBs below a certain resolution or deposited after a certain date --- essentially any of the PDB metrics that are stored in the database.
+Secondly, the user can navigate to the Advanced Search page (see Figure ~\ref{fig:zincbind-search}), where they can specify a more precise search by one or more PDB fields. This also allows searching by numeric cutoffs, such as for PDBs below a certain resolution or deposited after a certain date --- essentially any of the PDB metrics that are stored in the database.
 
 Thirdly, via this same page they can search for specific binding sites rather than for containing PDBs. The user can pick the same metrics as for PDBs (sites in PDBs below a certain resolution, with a certain classification etc.) as well as site-specific metrics, such as sites of a particular family, or containing particular residues.
 
-Finally, the user can provide a sequence and BLAST search the database. This uses the NCBI \texttt{blastp} binary on the backend, whose JSON output is processed by python functions and exposed via the GraphQL API. This produces chain sequence results, rather than PDB/sites as the other methods do.
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-search.eps}
+\caption{\label{fig:zincbind-search} The advanced search interface, allowing searching of
+PDB files, or individual zinc binding sites.}
+\end{figure}
 
-The search results for the first two modes of searching are returned as a list of matching PDBs, with binding sites nested within them. Both the PDB and the sites themselves are clickable and will take the user to the page for that entity. Search results can be sorted by a variety of metrics, and are paginated to 25 results per page.
+Finally, the user can provide a sequence and BLAST search the database (see Figure ~\ref{fig:zincbind-blast}). This uses the NCBI \texttt{blastp} binary on the backend, whose JSON output is processed by python functions and exposed via the GraphQL API. This produces chain sequence results (see Figure ~\ref{fig:zincbind-blast-results}), rather than PDB/sites as the other methods do.
 
-PDB pages represent PDB records. They provide basic information for that PDB (resolution, r-value, classification, source and expression organisms, experimental tehcnique, deposition date, and keywords --- the latter of which acts as a link to search by any of those keywords), as well as overviews of the zinc content of that PDB. The zincs associated with a binding site are listed as clickable links, while those without a binding site are listed along with their omission reason. Finally, there is a 3D manipulatable view of the PDB with all of its zinc binding sites. This uses the NGL JavaScript library, and beside it is a set of basic options for manipiulating the view, such as rotation options, background colour, and binding site highlighting --- this is in addition to NGL's built-in touch/drag/zoom manipulation. Generally the PDB page limits itself to information relevant to the structure's role as a zinc binding protein, but a link to the equivalent RCSB page is also provided for more information.
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-blast.eps}
+\caption{\label{fig:zincbind-blast} The BLAST search interface.}
+\end{figure}
 
-The binding site pages contain more detail for that specific binding site, such as its mode of coordination, and links to equivalent sites in the same group. There is also a 3D manipulatable model of the binding site on this page --- this is broadly the same as that on the PDB page, except zoomed in to the specific site and with selectable individual residues and metals. The page also contains a summary of information for the containing PDB, and a link to that PDB's page.
+The search results for the first two modes of searching are returned as a list of matching PDBs, with binding sites nested within them. Both the PDB and the sites themselves are clickable and will take the user to the page for that entity. Search results can be sorted by a variety of metrics, and are paginated to 25 results per page (see Figure ~\ref{fig:zincbind-results}).
 
-ZincBind also has a page that gives an overview of the dataset as a whole. This contains charts for residue distribution, experimental methods, residue codes, resolution, species frequency, and PDB classification. These are intended to give a sense of the key properties of the database `at a glance'. There are also links to a page containing all data (essentially a modified version of the search results page that shows all PDBs, paginated), a link to an overview of the GraphQL API, and a link to a page showing how the sites are clustered into families ans groups. Here each group lists the keywords and classifications that the sites in that group have in common to try and provide an automated way of annotating what the binding site the group represents actually does.
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-blast-results.eps}
+\caption{\label{fig:zincbind-blast-results} An example of BLAST search results.}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-results.eps}
+\caption{\label{fig:zincbind-results} An example of paginated (over two pages
+in this case) search result showing matching PDBs, and the zinc binding sites
+they contain.}
+\end{figure}
+
+PDB pages represent PDB records (see Figure ~\ref{fig:zincbind-pdb}). They provide basic information for that PDB (resolution, r-value, classification, source and expression organisms, experimental tehcnique, deposition date, and keywords --- the latter of which acts as a link to search by any of those keywords), as well as overviews of the zinc content of that PDB. The zincs associated with a binding site are listed as clickable links, while those without a binding site are listed along with their omission reason. Finally, there is a 3D manipulatable view of the PDB with all of its zinc binding sites. This uses the NGL JavaScript library, and beside it is a set of basic options for manipiulating the view, such as rotation options, background colour, and binding site highlighting --- this is in addition to NGL's built-in touch/drag/zoom manipulation. Generally the PDB page limits itself to information relevant to the structure's role as a zinc binding protein, but a link to the equivalent RCSB page is also provided for more information.
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-pdb.eps}
+\caption{\label{fig:zincbind-pdb} An example of a PDB page in ZincBind, showing basic
+information for that PDB. The three-dimensional structure view is further down the page.}
+\end{figure}
+
+The binding site pages (see Figure ~\ref{fig:zincbind-site}) contain more detail for that specific binding site, such as its mode of coordination, and links to equivalent sites in the same group. There is also a 3D manipulatable model of the binding site on this page --- this is broadly the same as that on the PDB page, except zoomed in to the specific site and with selectable individual residues and metals. The page also contains a summary of information for the containing PDB, and a link to that PDB's page.
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-site.eps}
+\caption{\label{fig:zincbind-site} An example of a binding site page in ZincBind, the manipulatable
+3D NGL viewer, zoomed in to this binding site.}
+\end{figure}
+
+ZincBind also has a page that gives an overview of the dataset as a whole (see Figure ~\ref{fig:zincbind-data}). This contains charts for residue distribution, experimental methods, residue codes, resolution, species frequency, and PDB classification. These are intended to give a sense of the key properties of the database `at a glance'. There are also links to a page containing all data (essentially a modified version of the search results page that shows all PDBs, paginated), a link to an overview of the GraphQL API, and a link to a page showing how the sites are clustered into families and groups. Here each group lists the keywords and classifications that the sites in that group have in common to try and provide an automated way of annotating what the binding site the group represents actually does (see Figure ~\ref{fig:zincbind-group}).
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-data.eps}
+\caption{\label{fig:zincbind-data} Overview statistics for the dataset presented on
+the ZincBind data page.}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-group.eps}
+\caption{\label{fig:zincbind-group} A ZincBind group page, summarising the clustered zinc
+binding sites and providing links to individual site pages.}
+\end{figure}
 
 There is a page dedicated to the prediction of binding sites that uses the seperate prediction API, but this will be covered in greater detail in the next chapter.
 
 Finally, ZincBind has a help page, structured as a series of questions that a user may have.
 
+Ultimately, the website is intended to serve as a way of broadening access to the database, which is continually updated. The API provides access to the data for researchers who need bulk access to the data, whereas the web frontend allows an individual to explore the data more casually to get a sense of what research might be carried out with it.
 
 \section{Data Analysis}
 
