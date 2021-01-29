@@ -39,7 +39,25 @@ The inputs and outputs are more open to interpretation however. So far I have fr
 But what should be the components? What inputs will actually be passed to the model? For protein structures, one obvious possibility is simply location in space - every point within the three-dimensional structure is taken (in some specified resolution grid) and passed to the model as an input, which assigns that location a predictive label. This would be comprehensive but time consuming, as there would be many points to check - the number of points could be limited to the protein surface, but there would still be a lot. Another possible means of breaking the structure into components would be to take all the combinations of residues that are known to bind zinc, and treat these as inputs - there could again be very many of these, but fewer than if every point in space were checked. For sequences, there is no equivalent to checking every point in space, as this information is obviously not available and residues nearby in space are not necessarily nearby in sequence. However using the combinations of zinc binding residues is still applicable to sequences.
 
 
+\subsection{(From chapter 3) Web-Based Prediction}
 
+The ZincBind website has a webpage through which users may submit `jobs' for prediction - they can upload either a structure file or a sequence, and the server will analyse them and try to ascertain if they contain any zinc binding residues.
+
+The details of these predictive algorithms will be explained in the following chapters, but from a web development perspective, the overall architecture of how these jobs are submitted and presented to the user can be outlined here.
+
+On the prediction page, the user is prompted to provide the representation of a protein - either as a structure file, a sequence file, or a FASTA sequence pasted in. This is done via a HTML form, and as soon as the page loads a hidden input with the job ID is generated. This is just the current time in milliseconds, making it extremely unlikely that any two jobs would have the same ID given the niche area of Biology the tool is for.
+
+As soon as the data is given, and before the form is actually submitted, the data in question is stored to the browser's local storage using the job ID that was generated when the page loaded. This is because on the next page, this data will be used to give the user a visualisation of the data in question, and downloading it from the server when it has just been uploaded from the local machine would be a waste of bandwidth.
+
+Once the user submits the form, the server receives the datafile, and job ID, and the django application starts the analysis process. It creates a folder in the jobs directory with the job ID's name, puts the uploaded file there, and then runs the predict.py script on it. This script is a general purpose script which takes any submitted file, and calls other predictive tools created in this PhD on it. Crucially though, this is called as an asynchronous process, so the request/response cycle doesn't have to wait for it to complete. Once the process is started, the user is redirected to the page for this particular job.
+
+This page uses the data in local storage to show the user what they have submitted (using the NGL protein viewer for structures \note{and for sequences?}) along with a suitable `this protein is being searched' animation. The page the constantly polls the server with AJAX requests for progress updates on the job (with ever increasing periods of time between requests). The script writes its progress to a log file, which the server answers the AJAX requests with - these are then formatted and presented to the user.
+
+The page receives the log text and outputs it to the screen in a div element, albeit with some modifications. Each line is wrapped in its own div elements to make them appear on their own line, and lines which were indented in the log file are given a particular CSS class to make them indented on screen (as tabs are ignored in HTML).
+
+Lines which begin with an underscore in the log file are not printed to the screen, as these are the lines which contain the identified binding sites. The lines contain, space-separated, the family of the predicted binding site, the residue name and ID of the residues identified, and the `score' they have obtained. These are used to create clickable boxes for each predicted site in the HTML, and to assign each an NGL selection string so that when they are clicked, the 3D view of the protein zooms in to that part of the protein and displays their side chains.
+
+\note{Explain how found binding sites are shown.}
 
 
 

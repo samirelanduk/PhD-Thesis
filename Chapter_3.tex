@@ -86,47 +86,34 @@ Binding sites and groups form two components of the three-part hierarchy of data
 
 \section{The ZincBind Web Resource}
 
-As already noted, the creation of this dataset was intended to serve both as the primary dataset of this project, and as a publicly available resource.
+As already noted, the creation of this dataset was intended to serve both as the primary dataset of this project, and as a publicly available resource. This resource is called ZincBind, and is publicly available.
 
-This resource is called ZincBind, and is accessible at \url{zincbind.bioinf.org.uk}. The website is created with Django, a Python web framework and Object Relational Management system.
+The database is accessible via a GraphQL API, which allows any specific object, or set of related objects, to be requested in a single HTTP request. This is available at \url{api.zincbind.net} and is the primary means of obtaining data from ZincBind in an automated fashion. As outlined in chapter 2, this is created using the Python web framework Django (particularly its Object Relational Management system) and the GraphQL library graphene.
 
-The web frontend is designed with a responsive, mobile-first layout that adapts to different screen sizes, and modern JavaScript and Test Driven Development practices.
+More accessibly for casual browsing, there is also a website available at \url{zincbind.net}
+accessible at \url{zincbind.net}. This is a lightweight web frontend that interacts with the database via the GraphQL API and presents it to the user graphically. It is a responsive, mobile-first layout created with the front-end framework reach, that adapts to different screen sizes.
 
 The home page contains a short, clear statement of what ZincBind is (a ``database of zinc binding sites, automatically generated from the Protein Data Bank") as well as a brief overview of its key metrics - number of unique binding sites, total number of binding sites, and the number of PDB files the sites are derived from.
 
-Searching of the database can be done in one of three ways. Firstly, from the home page, the user can enter a search term that will be used to search multiple PDB fields at once - title, PDB code, classification etc. This is for users who just want to find entries that have any relation to a given term at all. Secondly, the user can navigate to the Advanced Search page, where they can specify a more precise search by one or more fields. This also allows searching by numeric cutoffs, such as for PDBs below a certain resolution or deposited after a certain date. Thirdly, they can provide a sequence and BLAST search the database. This uses the NCBI blastp binary on the backend, whose JSON output is processed by Django.
+Searching of the database can be done in one of four ways. Firstly, from the home page, the user can enter a search term that will be used to search multiple PDB fields at once - title, PDB code, classification etc. This is for users who just want to find entries that have any relation to a given term at all, and provides an easy, low-friction way for a user to submit a search immediately.
+
+Secondly, the user can navigate to the Advanced Search page, where they can specify a more precise search by one or more PDB fields. This also allows searching by numeric cutoffs, such as for PDBs below a certain resolution or deposited after a certain date --- essentially any of the PDB metrics that are stored in the database.
+
+Thirdly, via this same page they can search for specific binding sites rather than for containing PDBs. The user can pick the same metrics as for PDBs (sites in PDBs below a certain resolution, with a certain classification etc.) as well as site-specific metrics, such as sites of a particular family, or containing particular residues.
+
+Finally, the user can provide a sequence and BLAST search the database. This uses the NCBI \texttt{blastp} binary on the backend, whose JSON output is processed by python functions and exposed via the GraphQL API. This produces chain sequence results, rather than PDB/sites as the other methods do.
 
 The search results for the first two modes of searching are returned as a list of matching PDBs, with binding sites nested within them. Both the PDB and the sites themselves are clickable and will take the user to the page for that entity. Search results can be sorted by a variety of metrics, and are paginated to 25 results per page.
 
-PDB pages represent PDB records. They provide basic information for that PDB, as well as overviews of the zinc content of that PDB. The zincs associated with a binding site are listed as clickable links, while those without a binding site are listed along with their omission reason. Finally, there is a 3D manipulatable view of the PDB with all of its zinc binding sites. This uses the NGL JavaScript library.
+PDB pages represent PDB records. They provide basic information for that PDB (resolution, r-value, classification, source and expression organisms, experimental tehcnique, deposition date, and keywords --- the latter of which acts as a link to search by any of those keywords), as well as overviews of the zinc content of that PDB. The zincs associated with a binding site are listed as clickable links, while those without a binding site are listed along with their omission reason. Finally, there is a 3D manipulatable view of the PDB with all of its zinc binding sites. This uses the NGL JavaScript library, and beside it is a set of basic options for manipiulating the view, such as rotation options, background colour, and binding site highlighting --- this is in addition to NGL's built-in touch/drag/zoom manipulation. Generally the PDB page limits itself to information relevant to the structure's role as a zinc binding protein, but a link to the equivalent RCSB page is also provided for more information.
 
-The binding site pages contain more detail for that specific binding site, such as its mode of coordination, and links to equivalent sites in the same cluster. There is also a 3D manipulatable model of the binding site on this page, zoomed in to the specific site and with selectable individual residues and metals.
+The binding site pages contain more detail for that specific binding site, such as its mode of coordination, and links to equivalent sites in the same group. There is also a 3D manipulatable model of the binding site on this page --- this is broadly the same as that on the PDB page, except zoomed in to the specific site and with selectable individual residues and metals. The page also contains a summary of information for the containing PDB, and a link to that PDB's page.
 
-ZincBind also has a page that gives an overview of the dataset as a whole. This contains charts for residue distribution, experimental methods, residue codes, resolution, species frequency, and PDB classification. There are also buttons for downloading the entire dataset in either JSON or SQlite, a link to browse the entire dataset PDB by PDB, and a link to the API.
+ZincBind also has a page that gives an overview of the dataset as a whole. This contains charts for residue distribution, experimental methods, residue codes, resolution, species frequency, and PDB classification. These are intended to give a sense of the key properties of the database `at a glance'. There are also links to a page containing all data (essentially a modified version of the search results page that shows all PDBs, paginated), a link to an overview of the GraphQL API, and a link to a page showing how the sites are clustered into families ans groups. Here each group lists the keywords and classifications that the sites in that group have in common to try and provide an automated way of annotating what the binding site the group represents actually does.
 
-ZincBind's API is a web browsable REST API, created using the Django Rest Framework. Web browsability means that results will be returned as HTML if requests are sent using a browser, and JSON otherwise. The API can be used to get JSON representations of object sets, individual objects, and to search the database using all the same parameters as the browser search tool.
+There is a page dedicated to the prediction of binding sites that uses the seperate prediction API, but this will be covered in greater detail in the next chapter.
 
 Finally, ZincBind has a help page, structured as a series of questions that a user may have.
-
-\subsection{Web-Based Prediction}
-
-The ZincBind website has a webpage through which users may submit `jobs' for prediction - they can upload either a structure file or a sequence, and the server will analyse them and try to ascertain if they contain any zinc binding residues.
-
-The details of these predictive algorithms will be explained in the following chapters, but from a web development perspective, the overall architecture of how these jobs are submitted and presented to the user can be outlined here.
-
-On the prediction page, the user is prompted to provide the representation of a protein - either as a structure file, a sequence file, or a FASTA sequence pasted in. This is done via a HTML form, and as soon as the page loads a hidden input with the job ID is generated. This is just the current time in milliseconds, making it extremely unlikely that any two jobs would have the same ID given the niche area of Biology the tool is for.
-
-As soon as the data is given, and before the form is actually submitted, the data in question is stored to the browser's local storage using the job ID that was generated when the page loaded. This is because on the next page, this data will be used to give the user a visualisation of the data in question, and downloading it from the server when it has just been uploaded from the local machine would be a waste of bandwidth.
-
-Once the user submits the form, the server receives the datafile, and job ID, and the django application starts the analysis process. It creates a folder in the jobs directory with the job ID's name, puts the uploaded file there, and then runs the predict.py script on it. This script is a general purpose script which takes any submitted file, and calls other predictive tools created in this PhD on it. Crucially though, this is called as an asynchronous process, so the request/response cycle doesn't have to wait for it to complete. Once the process is started, the user is redirected to the page for this particular job.
-
-This page uses the data in local storage to show the user what they have submitted (using the NGL protein viewer for structures \note{and for sequences?}) along with a suitable `this protein is being searched' animation. The page the constantly polls the server with AJAX requests for progress updates on the job (with ever increasing periods of time between requests). The script writes its progress to a log file, which the server answers the AJAX requests with - these are then formatted and presented to the user.
-
-The page receives the log text and outputs it to the screen in a div element, albeit with some modifications. Each line is wrapped in its own div elements to make them appear on their own line, and lines which were indented in the log file are given a particular CSS class to make them indented on screen (as tabs are ignored in HTML).
-
-Lines which begin with an underscore in the log file are not printed to the screen, as these are the lines which contain the identified binding sites. The lines contain, space-separated, the family of the predicted binding site, the residue name and ID of the residues identified, and the `score' they have obtained. These are used to create clickable boxes for each predicted site in the HTML, and to assign each an NGL selection string so that when they are clicked, the 3D view of the protein zooms in to that part of the protein and displays their side chains.
-
-\note{Explain how found binding sites are shown.}
 
 
 \section{Data Analysis}
