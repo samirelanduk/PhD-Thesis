@@ -23,84 +23,255 @@
 
 \chapter{Predicting Zinc Binding Sites in Structures} % Write in your own chapter title
 \label{Chapter4}
-\lhead{Chapter 4. \emph{Predicting Zinc Binding Sites in Structures}} % Write in your own chapter title to set the page header
+\lhead{Chapter 4. \emph{Predicting Zinc Binding in Proteins}} % Write in your own chapter title to set the page header
 
-The aim of this component of the PhD is to create a system which ultimately is quite simple --- it would take as its input a protein structure, and output a list of zero or more residue combinations which are predicted to form a zinc binding site, with an accompanying probability.
+The aim of this component of the PhD is to create a system which conceptually is quite simple --- it would take as its input a protein sequence or protein sequence, and output a list of zero or more residue combinations which are predicted to form a zinc binding site, with an accompanying probability.
 
 This system is a machine learning system - it uses binary classifiers trained on the large dataset of zinc binding sites described in the previous chapter which `learn' what zinc binding sites look like form that data.
 
-This chapter will describe the approach taken to solving this problem, the models created, the archietcture of the system from the user's point of view, and how the models are accessed and used.
+This chapter will describe the approach taken to solving this problem, the models created, the architecture of the system from the user's point of view, and how the models are accessed and used.
+
+\section{Approach}
+
+As explored in Chapter 2, there have been multiple studies in the past which have used machine learning (or simpler methods) to create zinc-binding predictors (or general-purpose metal-binding predictors). Many of the general principles of these studies are adopted here, however there are two crucial methodological changes that I have chosen to make.
+
+One recurring feature of these previous works, particularly in the sequence-based predictive models, is the focus on zinc binding \emph{residues} rather than zinc binding \emph{sites}. In most cases, the entity examined by the predictive model is the individual residue, often with a surrounding linear sequence `window' of residues. The model then assigns a probability as to whether that residue is a zinc binding residue. As outlined in that chapter, this approach has had a measure of success, but it is a somewhat artificial concept. There is, after all, no such thing as a zinc-binding residue in isolation. The individual residues of a high-affinity zinc binding site of the kind considered here are only zinc-binding when the other residues are present, and conversely many non-zinc-binding residues could bind zinc if other residues were present in the correct locations. It is particular \emph{combinations} of residues, not individual residues, which are zinc binding --- an important fact not usually considered in research of this kind. As this chapter will explain, I have opted to create models which inspect residue combinations, not single residues.
+
+Another commonality is the treatment of zinc binding sites as a single category, and the presumption of properties that are common to them all regardless of the residues of which they are comprised. This may well be sufficient --- particularly as there are essentially only four residues that make up the vast majority of zinc binding sites --- but it is possible that properties used for prediction have much tighter distributions within particular sub-categories of zinc binding sites. As such, I have elected not to create a single model that predicts zinc binding in structures and another that predicts them in sequence, but rather one model per \emph{family} of zinc binding site, of the kind described in Chapter 3. That is, there is a model for predicting H3 binding sites (those made of three histidine residues) in structure, one for predicting H3 binding sites in sequence, one for predicting C2H2 binding sites in structure, for predicting C2H2 sites in sequence, and so on. As well as the increased specificity this affords, another advnatage of this approach is a purely practical one. All the possible H3 binding sites in a protein are found by taking all combinations of three histidine residues, and while the combinatorics of this can lead to large numbers of potential sites to check, it is vastly smaller than the combinations of \emph{all} residues that would need to be checked if the model was suppoed to look for a generic zinc binding sites --- an infeasible task for all but the smallest of proteins.
+
+The overall pipeline of the resulting system for predicting zinc binding then, is that when a protein structure of sequence is given, for each family for which there is a model all residue combinations within that protein which match the family are identified (all unique combinations of three histidine residues for H3, for example) and passed to the relevant model, which assigns a probability that the residues comprise a zinc binding site. This is repeated for every combination, and for every family, to build up a list of predicted binding sites.
+
+\section{Data Preparation}
+
+The first decision to make was which families to use. There are 701 families in total in ZincBind, ranging from C4 with its 3069 unique representatives, to obscure families like C1D1E1H2 (one cysteine, one glutamate, one aspartate and two histidine residues) which has only one representative. In fact there are 244 families with one representative, and many with only a small number of representatives. To train a model that can recognise some combination of residues as being a zinc binding site of some family rather than some random combination, the model needs to be trained on many, many examples of such sites so there is clearly a minimum number of representatives in the database that a family must have for it to make sense to train a model for it. It is not immediately obvious what this minimum number should be. Initially I decided to use the top ten families --- C4, C3H1, C2H2, D1H2, E1H2, H3, C3, E1H1, C2H1 and D1H1. This was originally a somewhat arbitrary cutoff and the intention was to adjust it based on results, though as this chapter will show, ten families is probably the correct number in terms of resultant dataset size.
+
+For a binary classifier of the kind being created here, the training set is a collection of positive samples (combinations of residues of that family which represent zinc binding sites) and negative samples (combinations of residues of that family which are not zinc binding sites). An assumption being made here is that if a combination of residues does not have a zinc atom bound to it in a structure, it is not a zinc binding site. This may not be true occasionally, as the structure simply may not have been crystallised in the presence of zinc. For this reason, some of the negative samples in the training sets may actually be positive. It is assumed however, that these cases are sufficiently infrequent as to have a negligible effect.
+
+The residue combinations are represented in the training data as a vector of measurements, with the final measurement being the indicator of whether it is positive (1) or negative (0). Each row in the training data represents a residue combination, each column a feature. There are twenty training datasets altogether --- for each of the ten families there is a training set for sequence data and a training set for structural data.
+
+\subsection{Sequence Training Data}
+
+To generate the sequence training datasets, for each family the ZincBind API was queried for all binding sites of that family, and those split over multiple chains were removed to leave single sequence binding sites. The resulting sequences were turned into feature vectors which contained the number of residues between each pair of binding residues, the average hydrophobicity of residues either side of the binding residues, using windows of size 1, 3 and 7, and the average number of charged residues either side of the binding residues, using the same window sizes. This created a dataset of positive samples.
+
+For the negative samples, for each family a sequence was chosen at random from the set of all unique sequences in UniProtKB and a combination of residues within that sequence matching the family but not a known binding site, was selected --- this was done repeatedly until a list of negative samples was built up equal in size to the
+positive dataset.  The two datasets were combined into a single dataset for each family. The resultant dataset is summarised in Table~\ref{tab:dataset-size}.
+
+\subsection{Structure Training Data}
+
+To generate the structure training datasets, for each zinc-binding family, all relevant zinc binding sites belonging to a PDB structure with resolution better than 2~{\AA}ngstr\"{o}ms were downloaded. For each PDB entry, the structure was downloaded and parsed using the Python library atomium (see Appendix A), assembled into the correct biological assembly, and then each binding site was turned into a feature vector using the following measurements: mean inter C$\alpha$ distance of the liganding residues, standard deviation of the C$\alpha$ distances, minimum C$\alpha$ distance, maximum C$\alpha$ distance --- and the corresponding measurements for the C$\beta$ atoms, for a total of 8 geometric features. The distances used are all the pairwise combinations of the atoms involved, so H3 sites will have three inter C$\alpha$ distances, C4 sites will have six, and so on. The final feature is the `hydrophobicity contrast function', calculated at the centre of the C$\beta$ atoms with a radius of 7~{\AA}ngstr\"{o}ms, This algorithm is a measure of how much outer atoms in a sphere are more hydrophobic than inner atoms, with higher values previously shown to be associated
+with centres of metal binding \cite{yamashita1990metal,gregory1993prediction}.
+
+As with the sequence data, this was repeated on combinations of residues with no known zinc binding ability until there was an equal number of negative samples. For these, PDB structures with no zinc atoms were selected at random (random sampling with replacement), and any random matching combination of residues from within was selected. The resultant dataset is summarised in Table~\ref{tab:dataset-size}.
+
+\begin{table}
+  \caption{\label{tab:dataset-size}The sizes of the twenty training set sizes used to train the models. In each case the size is less than the theoretical maximum of double the total number of sites per family, because the sequence sites have those with multiple chains filtered out, and the structure sites have those from poor resolution structures filtered out.}
+\begin{center}
+\begin{tabular}{lll} \hline
+Family & Structure Dataset Size & Sequence Dataset Size \\ \hline
+C4     & 2825         &  15332  \\
+C3H1   & 3232         &  9158   \\
+H3     & 3078         &  4524   \\
+E1H2   & 1287         &  2574   \\
+C2H2   &  702         &  3715   \\
+D1H2   &  982         &  2406   \\
+C3     &  407         &  2591   \\
+C2H1   &  506         &  1926   \\
+D1H1   &  522         &  804    \\ 
+E1H1   &  416         &  812    \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{Model Training}
+
+While the quality of the training set is a large determinate of eventual model quality, the choice of machine learning algorithm is also crucial. Chapter 2 explored the history of metal binding site predictive models and the various algorithms used --- as expanded upon there, there has been a shift towards the use of deep learning models over the past five years, partly driven by the widespread adoption of backpropagation for speeding up training. However another reason behind this shift has been the vast increase in the size of available datasets, which are generally required for something which uses as many layers of abstraction as neural networks. As the datasets here are necessarily quite small compared with those datasets (a deliberate tradeoff made in the hopes of creating highly specific models), I decided that such algorithms were not appropriate.
+
+I therefore considered K-Nearest Neighbor, Support Vector Machines, and Random Forest. Originally, the intention was to train a model with each of these algorithms and have the final model be a consensus of these three whereby they vote on each incoming residue combination. However early testing showed that Random Forest so consistently and significantly outperformed both the other two models in isolation, and the resultant consensus model, that I ultimately decided to solely use Random Forest for training.
+
+The actual training of the models was done using the Python library scikit-learn \cite{scikit-learn}. For each training dataset, the data was randomly split into training and test data using an 80:20 split --- the former used to train, the latter used to evaluate. As explained in chapter 2 this is vital to ensure the resultant model is not overfit.
+
+The hyper-parameters for each model were selected separately using 5-fold cross validation of the training set. The hyper-parameters explored were the impurity measure (gini \emph{vs.} entropy --- the algorithm used to split individual trees at each node), the maximum depth that the component trees could have (4, 6, 8 or no maximum), the number of trees in the forest (10, 100 or 1000), and the means of determining the best number of features at each split (either the
+square root of the number of features, or the log$_2$ of the number of features). Once optimal hyper-parameters were identified (determined by which combination produced the best F1 score in the cross-validation), the models were trained with those hyper-parameters using the entire training dataset.
+
+Once the model was trained on the ideal hyperparameters using all the training data, the model was evaluated on the test data, and the true positive, false positive, true negative and false negative counts were calculated. From these the recall, precision, F1 score, and Matthew's Correlation Coefficient were calculated. All of these were saved to the model by making them properties of the Python object, and then this Python object was serialised to disk using the Python joblib library for later use.
+
+\section{Model Performance}
+
+For the structural models, the lowest MCC score was 0.88 (for the E1H1 model). This, and the D1H1 model (MCC=0.91), relies on the geometry between just two residues, which makes creating a distinct separation between the two classes somewhat more difficult --- though their performance is still very close behind the three and four residue family models. The structure models had an average MCC of 0.960 (see Table~\ref{tab:structure}).
+
+The sequence models also had high scores, though were more variable. The four residue sites in particular had highly conserved patterns of residue spacing and flanking hydrophobicity despite being from several homologous families. The average MCC score for the sequence models was 0.87, with the lowest MCC being 0.61 for the E1H1 model and 0.74 for the D1H1 model --- again the two two-residue models were some way behind the MCC of 0.84 for the C3 model (see Table~\ref{tab:sequence}).
+
+\begin{table}
+  \caption{\label{tab:structure}Results for structure models, sorted
+    by Matthews Correlation Coefficient (MCC). The two-residue
+    families' performance was lower than the others as there is
+    essentially just the measurements between two centres to perform
+    the classification, but still scored relatively
+    highly. Four-residue sites in particular were found to have very
+    predictable properties.}
+\begin{center}
+\begin{tabular}{llllll} \hline
+Family & Dataset Size & Recall & Precision & F1    & MCC  \\ \hline
+C2H2   &  702         & 1.00   & 1.00      & 1.00  & 1.00 \\
+C4     & 2825         & 1.00   & 1.00      & 1.00  & 1.00 \\
+C3H1   & 3232         & 1.00   & 0.99      & 1.00  & 0.99 \\
+E1H2   & 1287         & 1.00   & 0.99      & 1.00  & 0.99 \\
+C2H1   &  506         & 1.00   & 0.98      & 0.99  & 0.98 \\
+H3     & 3078         & 1.00   & 0.98      & 0.99  & 0.98 \\
+D1H2   &  982         & 1.00   & 0.98      & 0.99  & 0.98 \\
+C3     &  407         & 1.00   & 0.98      & 0.99  & 0.98 \\
+D1H1   &  522         & 1.00   & 0.91      & 0.95  & 0.91 \\ 
+E1H1   &  416         & 0.93   & 0.95      & 0.94  & 0.88 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}
+\caption{\label{tab:sequence}Results for sequence models, sorted by
+  Matthews Correlation Coefficient (MCC).}
+\begin{center}
+\begin{tabular}{llllll} \hline
+Family & Dataset Size & Recall & Precision & F1    & MCC  \\ \hline
+C4     & 15332        & 1.00   & 0.98      & 0.99  & 0.98 \\
+H3     & 4524         & 0.98   & 0.99      & 0.98  & 0.97 \\
+C2H2   & 3715         & 0.97   & 0.99      & 0.98  & 0.95 \\
+C3H1   & 9158         & 0.98   & 0.96      & 0.97  & 0.94 \\
+E1H2   & 2574         & 0.95   & 0.97      & 0.96  & 0.92 \\
+D1H2   & 2406         & 0.94   & 0.95      & 0.94  & 0.90 \\
+C2H1   & 1926         & 0.93   & 0.95      & 0.94  & 0.88 \\
+C3     & 2591         & 0.95   & 0.89      & 0.92  & 0.84 \\
+D1H1   & 804          & 0.80   & 0.93      & 0.86  & 0.74 \\
+E1H1   & 812          & 0.81   & 0.83      & 0.82  & 0.61 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/size-score.eps}
+\caption{\label{fig:size-score} Model Performance (MCC) as a function
+  of training set size. Below ~4,000 rows, performance declines
+  sharply, though above this threshold there ceases to be a strong
+  correlation between the two.}
+\end{figure}
 
 
-\subsection{From Chapter 2}
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/learning-curve.eps}
+\caption{\label{fig:learning-curves} Learning curves for all 20
+  models. Each model was trained on increasing subsets of the overall
+  training set using five-fold cross-validation. Sequence models
+  improved with increasing dataset size, suggesting smaller dataset
+  sizes would not be feasible, whereas structure models did not.}
+\end{figure}
 
-The inputs and outputs are more open to interpretation however. So far I have framed the problem in terms of entire proteins - the input is an entire protein structure or an entire protein sequence, and the output is the number and location of the zinc binding site(s) that may be present. However this is difficult to translate into machine learning concepts, which is best suited to mapping input objects to either discrete classes or single continuous values. It is not really practical to represent `the number and location of the zinc binding site(s) that may be present' as a category or a number, so instead the problem will be re-framed so that the input is some sub-component of the protein, and the output is a binary class - `yes that component is a zinc binding region` or `no that region is not a zinc binding region'. The problem is therefore a classification problem, with two classes. When a protein is given, it is broken into its various components, each component is run through the model which predicts it as either zinc binding or not zinc binding, and then the net result for the protein as a whole is the list of components that are predicted as zinc binding.
+While the training is affected by dataset size, this does not appear to be a significant limiting factor for most of the models. Figure~\ref{fig:size-score} shows the model performance (as MCC) for the sequence and structure models. The performance of the sequence models falls off as the dataset falls below 4000 data points while the performance of the structural models falls off below around 1000 data points. The lowest three performing structural models were also the lowest three in dataset size (C3, E1H1, D1H1), but two of these have only two residues so, as discussed above, the performance might not be expected to be very good.
 
-But what should be the components? What inputs will actually be passed to the model? For protein structures, one obvious possibility is simply location in space - every point within the three-dimensional structure is taken (in some specified resolution grid) and passed to the model as an input, which assigns that location a predictive label. This would be comprehensive but time consuming, as there would be many points to check - the number of points could be limited to the protein surface, but there would still be a lot. Another possible means of breaking the structure into components would be to take all the combinations of residues that are known to bind zinc, and treat these as inputs - there could again be very many of these, but fewer than if every point in space were checked. For sequences, there is no equivalent to checking every point in space, as this information is obviously not available and residues nearby in space are not necessarily nearby in sequence. However using the combinations of zinc binding residues is still applicable to sequences.
+Learning curves (Figure~\ref{fig:learning-curves}) using fractions of the datasets show a correlation with dataset size for the sequence models, but above around 1000 sequences, the structure models do not improve with larger datasets.
+
+The level of abstraction used to describe both sequences and structures made it unlikely that any homology between data in the training and testing sets would artificially improve the performance. The features are largely calculated from residues around the binding residues, rather than the sequence in which they occur. However given the presence of similar sequences in the dataset, I thought it prudent to confirm that these were not artificially increasing the models' performance.
+
+Different sequence identity thresholds were used for clustering with CD-HIT and, where possible, a dataset of the same size was selected at random from each set of resulting clusters. No significant effect on performance was seen. When clustering at 40\% sequence identity, there was slightly lower performance but clustering at this level did result in smaller datasets. As indicated previously, this is a major determinant of these sequence models' performance.
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/clustering.eps}
+\caption{\label{fig:clustering} MCC as a function of dataset size for
+  160 different models.
+  For each of the ten zinc-binding families, we trained a
+  classifier on 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\% and
+  100\% of the original, unclustered data, and also a classifier
+  trained on data with sequences clustered by 40\%, 50\%, 60\%, 70\%,
+  80\%, 90\% and no clustering. Each of these models is shown here,
+  with their performance (MCC) and size of the dataset used to train
+  them. The two modes of dataset reduction are shown by different
+  shades and it can be seen that the curves are not significantly
+  different. A
+  model's performance is a function of its dataset size, regardless of
+  whether any removal of similar sequences is performed.}
+\end{figure}
+
+In order to identify whether this lowered performance was because the models performed worse without the possibility of homologous sequences between the training and test sets, or whether it was a result of the smaller training set,
+for each zinc-binding family I trained a classifier on 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\% and 100\% of the
+original, unclustered data, and also a classifier trained on data with sequences clustered by 40\%, 50\%, 60\%, 70\%, 80\%, 90\% and with no clustering. The performance of the models was then plotted against the resulting dataset sizes as shown in Figure~\ref{fig:clustering}.  This demonstrates that it is dataset size that determines model performance, regardless of the similarity of the sequences in the training and testing datasets.
+
+\begin{table}
+  \caption{\label{tab:psiblast}Predictive ability of using BLAST
+    to predict zinc binding in protein sequences using homology
+    alone.}
+\begin{center}
+\begin{tabular}{llllll} \hline
+Family & Dataset Size & Recall & Precision & F1    &  MCC  \\ \hline
+C2H2   & 3960         & 0.99   & 0.95      & 0.97  &  0.94 \\
+C3H1   & 9710         & 0.29   & 0.87      & 0.44  &  0.33 \\
+C2H1   & 2154         & 0.24   & 0.88      & 0.37  &  0.3  \\
+D1H1   & 818          & 0.05   & 0.8       & 0.09  &  0.11 \\
+C3     & 2868         & 0.13   & 0.61      & 0.21  &  0.07 \\ 
+E1H1   & 828          & 0.06   & 0.62      & 0.11  &  0.06 \\
+D1H2   & 2470         & 0.03   & 0.53      & 0.06  &  0.01 \\
+H3     & 5058         & 0.01   & 0.19      & 0.02  & -0.1  \\
+E1H2   & 2648         & 0.02   & 0.33      & 0.04  & -0.06 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+For reference, I compared the sequence models with using BLAST for predicting zinc-binding sites. For each zinc-binding family, a BLAST database was created using 80\% of the available zinc-binding sequences, and BLAST's ability
+to identify zinc binding sites from the remaining 20\% was compared against an equivalently sized negative set. Results are shown in Table~\ref{tab:psiblast}. With the exception of C2H2, using BLAST to find zinc binding based on homology performs much worse than the models presented here. Even in the case of C2H2, which seems to have much more similar sequences in its dataset, my model still narrowly outperforms BLAST.
+
+The performance scores here compare favorably with recent comparable predictive models based on structure and sequence covered in Chapter 2 --- most notably the `SVM and Sample-weighted Probabilistic Neural Network' (MCC$=0.80$) \cite{li2019}, the `meta-zinc predictor' (MCC$=0.79$) \cite{Li2017} and ZincExplorer (MCC$=0.78$) \cite{chen2013}.
+
+However the models presented here are not intended to be general purpose zinc binding predictors that detect common properties of all zinc binding sites --- they are family-specific predictors based on the principle that common, specific types of zinc binding site have more identifiable, consistent properties than do zinc binding sites in general. As a result, they will not readily detect binding sites of uncommon zinc-binding families. This abstract predictiveness has been deliberately discarded to create highly effective models for specific, common families of zinc binding sites. It is also noteworthy that the binding site itself is a useful unit of prediction using this
+methodology --- even for sequences --- rather than individual binding sites. The models are therefore identifying something biologically real (a zinc binding site) rather than something which does not actually exist in isolation (a single zinc binding residue), but which is a useful heuristic in some circumstances.
+
+\begin{table}
+  \caption{\label{tab:genome}Percentage of genome predicted to be zinc
+    binding by ZincBindPredict for an assortment of bacterial
+    genomes. Genomes were acquired from ensembl
+    \cite{yates2020ensembl} in the form of translated polypeptide
+    sequences, with a sequence labelled as zinc binding if any of the
+    ten models finds at least one zinc binding site for that
+    sequence/family combination. See Supplementary file {\tt
+      genomes.zip} for the full results.}
+\begin{center}
+\begin{tabular}{ll} \hline
+Species                          & Percentage of Genome   \\
+                                 & Predicted Zinc Binding \\ \hline
+{\it Campylobacter jejuni}       & 6.4\%                  \\
+{\it Clostridioides difficile}   & 5.8\%                  \\
+{\it Enterococcus faecalis}      & 7.5\%                  \\
+{\it Listeria monocytogenes}     & 7.9\%                  \\
+{\it Mycobacterium tuberculosis} & 11.3\%                 \\
+{\it Salmonella enterica}        & 11.1\%                 \\
+{\it Shigella flexneri}          & 10.1\%                 \\ 
+{\it Streptococcus pneumoniae}   & 7.6\%                  \\ \hline
+
+\end{tabular}
+\end{center}
+\end{table}
+
+A demonstration of this can be seen by applying the sequence models to bacterial genomes to measure the proportion of typical genomes that the models predict to be zinc binding, as shown for a range of bacterial genomes in Table~\ref{tab:genome}. For most genomes, fewer than 10\% of proteins are flagged as zinc binding, with the average for the genomes examined being 8.46\%. Given that the zinc-binding families for which predictors have been generated represent 67.0\% of binding sites in ZincBindDB, this would imply a `true' predicted proportion of 12.6\% which is a little higher than the widely cited figure of 10\%.
+
+\section{Access to Models}
+
+The models are available through a web app called ZincBindPredict. This is a GraphQL API, like the ZincBindDB database API, which allows users to submit jobs and get the results. A GraphQL request can be sent with either a protein sequence or protein structure, and a job ID will be returned. This can then be polled for results as the protein or sequence is searched using each model in turn, with the identified binding sites returned as a list with the associated probability. Internally, when a protein is submitted a `job' folder is created, using the current UNIX time in milliseconds as the ID. This job ID is returned to the user, which they can use to query the status of the job, as a script which runs each of the model in turn runs as a background process and saves its results to the job's folder on the server, for inspection by the API.
+
+The ZincBind web interface that was explored in-depth in Chapter 3 also has a page that allows users to submit jobs using a more human-friendly interface, which itself consumes the ZincBindPredict API (see Figure~\ref{fig:prediction-interface}). The user is prompted to provide the representation of a protein - either as a structure file, a sequence file, or a FASTA sequence pasted in. They also have the option of only searching for specific families. Positive results are listed on a results page once the job is complete, and the number of rejected residue combinations is listed.
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/prediction-interface.eps}
+\caption{\label{fig:prediction-interface} The prediction page on the ZincBind web interface, and an example of a predicted zinc binding site in a protein sequence.}
+\end{figure}
+
+\section{Conclusion}
+
+The models created here are highly effective, albeit at a very particular task. They are not predictors of zinc binding in general, and they will not generally detect zinc binding sites of obscure families and residue combinations. They were never intended to. A deliberate trade-off between model effectiveness and model generalisability has been made in order to demonstrate the principal that properties of binding sites within families \emph{are} more tightly distributed and hence create more accurate models. These models also detect something biologically real --- full binding sites --- rather than individual zinc binding residues which, as discussed, are an artificial concept.
+
+However, this downside is not necessarily permanent. The models are limited to these ten models because these are the families for which there is sufficient (only just, in the case of some of the sequence models) data to train a classifier. However, the data in ZincBind is constantly growing thanks to the automated database update scripts in place. Over the time, the eleventh-placed model will acquire enough data to warrant a model, and then the twelfth, and so on. The dataset-size threshold for training is not relative to the total size of the database, it is an absolute amount, and so over time more and more families will be able to have models trained for them, and the models will become more comprehensive of zinc binding generally. The benefits of this trade-off are permanent --- the deficiencies are temporary.
 
 
-\subsection{(From chapter 3) Web-Based Prediction}
-
-The ZincBind website has a webpage through which users may submit `jobs' for prediction - they can upload either a structure file or a sequence, and the server will analyse them and try to ascertain if they contain any zinc binding residues.
-
-The details of these predictive algorithms will be explained in the following chapters, but from a web development perspective, the overall architecture of how these jobs are submitted and presented to the user can be outlined here.
-
-On the prediction page, the user is prompted to provide the representation of a protein - either as a structure file, a sequence file, or a FASTA sequence pasted in. This is done via a HTML form, and as soon as the page loads a hidden input with the job ID is generated. This is just the current time in milliseconds, making it extremely unlikely that any two jobs would have the same ID given the niche area of Biology the tool is for.
-
-As soon as the data is given, and before the form is actually submitted, the data in question is stored to the browser's local storage using the job ID that was generated when the page loaded. This is because on the next page, this data will be used to give the user a visualisation of the data in question, and downloading it from the server when it has just been uploaded from the local machine would be a waste of bandwidth.
-
-Once the user submits the form, the server receives the datafile, and job ID, and the django application starts the analysis process. It creates a folder in the jobs directory with the job ID's name, puts the uploaded file there, and then runs the predict.py script on it. This script is a general purpose script which takes any submitted file, and calls other predictive tools created in this PhD on it. Crucially though, this is called as an asynchronous process, so the request/response cycle doesn't have to wait for it to complete. Once the process is started, the user is redirected to the page for this particular job.
-
-This page uses the data in local storage to show the user what they have submitted (using the NGL protein viewer for structures \note{and for sequences?}) along with a suitable `this protein is being searched' animation. The page the constantly polls the server with AJAX requests for progress updates on the job (with ever increasing periods of time between requests). The script writes its progress to a log file, which the server answers the AJAX requests with - these are then formatted and presented to the user.
-
-The page receives the log text and outputs it to the screen in a div element, albeit with some modifications. Each line is wrapped in its own div elements to make them appear on their own line, and lines which were indented in the log file are given a particular CSS class to make them indented on screen (as tabs are ignored in HTML).
-
-Lines which begin with an underscore in the log file are not printed to the screen, as these are the lines which contain the identified binding sites. The lines contain, space-separated, the family of the predicted binding site, the residue name and ID of the residues identified, and the `score' they have obtained. These are used to create clickable boxes for each predicted site in the HTML, and to assign each an NGL selection string so that when they are clicked, the 3D view of the protein zooms in to that part of the protein and displays their side chains.
-
-\note{Explain how found binding sites are shown.}
 
 
 
-\section{Families}
 
-The first consideration when creating a machine learning classifier is the features that will be used to represent the inputs. Classifiers take their inputs as a vector of numbers and then try to assign the vector to one of two (in the case of binary classifiers) categories. Because the aim here is not just to label an entire protein as either zinc binfing or not zinc binding, but rather to identify the actual zinc binding residues, the proteins themselves are not the inputs - potential zinc binding sites within the protein are.
-
-The main approach is to use combinations of residues as the inputs. That is all plausible combinations of residues will be looked at in turn, turned into a vector, and passed to the model.
-
-Rather than create a single model, the decision was taken early on to create a model for each family. That is, there is a model which looks at sets of three histidines and tries to determine if it is a H3 binding site, a model which looks at sets of four cysteines and tries to determine if it is a C4 binding site, and so on. The main reason for this is that the geometric spacing of residues varies widely between different families, but not within families, which should allow a model to more easily learn what constitutes a likely binding site of a particular family. \note{Definitely need to show this in chapter 3!}
-
-Another advnatage of this approach is a purely practical one. All the possible H3 binding sites in a protein are found by taking all combinations of three histidine residues, and while the combinatorics of this can lead to large numbers of potential sites to check, it is vastly smaller than the combinations of \emph{all} residues that would need to be checked if the model was suppoed to look for a generic zinc binding sites --- an infeasible task for all but the smallest of proteins.
-
-\section{Datasets}
-A training dataset was created for each family, using the ZincBindDB API. For each family, all zinc binding sites of that family, belonging to PDBs with a resolution equal to or better than 2 {\AA} were identified --- this quality cutoff being used so that the interatomic distances used in the making of the dataset could be relied upon.
-
-For each site, the PDB file was downloaded.
-
-
-\section{Old}
-
-
-Before applying machine learning methods to the dataset, it is worth stopping to see if there are any straightforward identifiable geometric patterns that occur in the zinc binding stuctures gathered, which might be used as templates to search in unknown structures.
-
-There is a wide variety of different binding modes and residue composition, as has been shown, so it is not at first apparent that there should be any usable geometric templates that can be extracted from these. However ZincBind divides the binding sites among families, each with their own residue makeup, and it seems much more plausible that there may be consistent within families. That is, while there may not be a single `zinc binding pattern', there may be a `H3' pattern for example, or a `C2H2' pattern.
-
-Specifically, in this chapter I am interested in patterns of alpha and beta carbons, and the binding sites will be examined in terms of the geometry of these atoms. There are two primary reasons for this:
-
-\begin{enumerate}
-   \item The primary use case for searching through protein structures looking for zinc binding patterns is for when the structure is an apo-structure - without zinc. The actual liganding `tips' of liganding residues would be expected to vary more markedly in position than the alpha and beta carbons, which are more constrained by the overall fold of the protein \note{Cite!}.
-   \item All residues contain alpha carbons, and all but one contain beta carbons. This means that essentially all residues can be searched for the resultant pattern. While this is not especially useful for the specific use case of finding native zinc binding sites, it \emph{is} useful for zinc binding site engineering. The pattern search could identify all residues which fit a given pattern, and if the residue identities also match it can be flagged as a possible zinc binding site, and if they don't, it can be flagged as a site which could feasibly be mutated to become one.
-\end{enumerate}
-
-\subsection{Profile Generation}
-
-The initial step is to go through the ZincBind dataset and create a `profile' for each family. As some of the smaller families are quite esoteric, with large numbers of residues and metals, I decided to limit the scan for the smaller, more highly represented families. Specifically, the initial families were H3 (chosen because carbonic anhydrase is in this family, which is a frequent target of protein engineering), C4 (the most common family), C2H2, and C3H1 (both common families, important in zinc fingers).
-
-Limiting to families which generally ligate a single zinc, rather than coactive binding sites, is important as there would be more constraints on residue position if they are all clustered around a single centre.
-
-For each family, all sites are examined providing (1) their resolution is better than 2.5 ~{\AA}, (2) they only have a single metal, and (3) they ligate using side chain atoms \note{Not at time of writing!}.
-
-The key attributes to determine for any given site are thos eattributes which would be used to actually search a novel structure. This means that the distribution of distances between residue atoms and the metal atom, however interesting, are irrelevant for these purposes because the structures being searched will not have metals present. That leaves the distances between the alpha and beta carbons themselves.
-
-The number of measurements needed for a given binding site will increase with the number of residues, because all combinations need to be considered. For three residue sites such as H3, there are three measurements for the alpha carbons (CA1-CA2, CA2-CA3, CA1-CA3) and three for the beta carbons (CB1-CB2, CB2-CB3, CB1-CB3), for a total of six measurements. For four residue sites, there are six alpha measurements and six beta measurements \note{Give combinations formula explanation}.
-
-This requires a certain consistency in which residues are labelled as 1, 2 etc. In this system, the residues of a given type are ordered by alpha carbon distance to the metal, and numbered accordingly.
