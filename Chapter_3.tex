@@ -93,7 +93,7 @@ The database is accessible via a GraphQL API, which allows any specific object, 
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/zincbind-api-example.eps}
-\caption{\label{fig:zincbind-api-example} An example of a ZincBind GraphQL API query
+\caption[An example of a ZincBind GraphQL API query.]{\label{fig:zincbind-api-example} An example of a ZincBind GraphQL API query
 --- in this case for a \texttt{PDB} object,
 here requesting all the zinc binding sites within that \texttt{PDB} --- there is
 one in this case. In this case the fields \texttt{id} and \texttt{family} are
@@ -107,7 +107,7 @@ The home page (see Figure ~\ref{fig:zincbind-homepage}) contains a short, clear 
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/zincbind-homepage.eps}
-\caption{\label{fig:zincbind-homepage} The home page of ZincBind, showing the
+\caption[The home page of ZincBind.]{\label{fig:zincbind-homepage} The home page of ZincBind, showing the
 overview statistics in the top-left, and the quick search text box in the top right.
 The menu bar at the top collapses on small screen widths, making them accessible via a
 drop-down menu on mobile.}
@@ -122,7 +122,7 @@ Thirdly, via this same page they can search for specific binding sites rather th
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/zincbind-search.eps}
-\caption{\label{fig:zincbind-search} The advanced search interface, allowing searching of
+\caption[The advanced search interface.]{\label{fig:zincbind-search} The advanced search interface, allowing searching of
 PDB files, or individual zinc binding sites.}
 \end{figure}
 
@@ -145,7 +145,7 @@ The search results for the first two modes of searching are returned as a list o
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/zincbind-results.eps}
-\caption{\label{fig:zincbind-results} An example of paginated (over two pages
+\caption[An example of paginated search results.]{\label{fig:zincbind-results} An example of paginated (over two pages
 in this case) search result showing matching PDBs, and the zinc binding sites
 they contain.}
 \end{figure}
@@ -164,7 +164,7 @@ The binding site pages (see Figure ~\ref{fig:zincbind-site}) contain more detail
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/zincbind-site.eps}
-\caption{\label{fig:zincbind-site} An example of a binding site page in ZincBind, the manipulatable
+\caption[An example of a binding site page in ZincBind.]{\label{fig:zincbind-site} An example of a binding site page in ZincBind, with the manipulatable
 3D NGL viewer, zoomed in to this binding site.}
 \end{figure}
 
@@ -211,7 +211,8 @@ Using the full biological assembly leads to zinc ions being both excluded, and i
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/omission.eps}
-\caption{\label{fig:omission} Illustrating the relative frequency of omission reasons for zinc
+\caption[The relative frequency of omission reasons for zinc
+atoms that were ultimately not assigned to a binding site.]{\label{fig:omission} Illustrating the relative frequency of omission reasons for zinc
 atoms that were ultimately not assigned to a binding site. There were 8 which were omitted because
 the PDB structure did not contain side chains --- insignificant compared with the other two reasons.}
 \end{figure}
@@ -237,7 +238,7 @@ The secondary residues, those which contact the primary liganding residues, are 
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/secondary-residues.eps}
-\caption{\label{fig:secondary-residues.eps} There is a weak correlation between residue hydrophobicity and their frequency as a secondary residue in zinc binding sites.}
+\caption[Correlation between residue hydrophobicity and their frequency as a secondary residue in zinc binding sites]{\label{fig:secondary-residues.eps} There is a weak correlation between residue hydrophobicity and their frequency as a secondary residue in zinc binding sites.}
 \end{figure}
 
 If the primary binding residues' single letter codes are combined to give an overall `signature' of the binding site, C4 (four cysteine residues) is the most prevalent, with 3,069 of the 17,471 unique binding sites having this arrangement of residues (17.6\%) - followed closely by C3H1, with 2149 (12.3\%). That the most common signature makes up just 17.6\% of the total is indicative of the relatively high diversity in such signatures. Between them, the top ten residue signatures account for just 64.4\% of the total.
@@ -249,7 +250,7 @@ This same subset of binding sites can be used to investigate liganding atom dist
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/atom-distances.eps}
-\caption{\label{fig:atom-distances.eps} The distribution of liganding atom
+\caption[The distribution of liganding atom distances in all single-zinc sites.]{\label{fig:atom-distances.eps} The distribution of liganding atom
   distances in all single-zinc sites, with a resolution better than
   3\AA. The overall distribution can be seen as bimodal, with the
   first peak being the preferred distance of nitrogen and oxygen, and

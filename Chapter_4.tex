@@ -64,7 +64,7 @@ with centres of metal binding \cite{yamashita1990metal,gregory1993prediction}, a
 As with the sequence data, this was repeated on combinations of residues with no known zinc binding ability until there was an equal number of negative samples. For these, PDB structures with no zinc atoms were selected at random (random sampling with replacement), and any random matching combination of residues from within was selected. The resultant dataset is summarised in Table~\ref{tab:dataset-size}.
 
 \begin{table}
-  \caption{\label{tab:dataset-size}The sizes of the twenty training set sizes used to train the models. In each case the size is less than the theoretical maximum of double the total number of sites per family, because the sequence sites have those with multiple chains filtered out, and the structure sites have those from poor resolution structures filtered out.}
+  \caption[Training set size.]{\label{tab:dataset-size}The sizes of the twenty training set sizes used to train the models. In each case the size is less than the theoretical maximum of double the total number of sites per family, because the sequence sites have those with multiple chains filtered out, and the structure sites have those from poor resolution structures filtered out.}
 \begin{center}
 \begin{tabular}{lll} \hline
 Family & Structure Dataset Size & Sequence Dataset Size \\ \hline
@@ -104,7 +104,7 @@ The sequence models also had high scores, though were more variable. The four re
 The high performance of the models appears to justify the methodological changes made compared with previous metal binding classifiers. The performance scores here compare favorably with recent comparable predictive models based on structure and sequence covered in Chapter 2 --- most notably the `SVM and Sample-weighted Probabilistic Neural Network' (MCC$=0.80$) \cite{li2019}, the `meta-zinc predictor' (MCC$=0.79$) \cite{li2017} and ZincExplorer (MCC$=0.78$) \cite{chen2013}.
 
 \begin{table}
-  \caption{\label{tab:structure}Results for structure models, sorted
+  \caption[Structural model performance.]{\label{tab:structure}Results for structure models, sorted
     by Matthews Correlation Coefficient (MCC). The two-residue
     families' performance was lower than the others as there is
     essentially just the measurements between two centres to perform
@@ -129,7 +129,7 @@ E1H1   &  416         & 0.93   & 0.95      & 0.94  & 0.88 \\ \hline
 \end{table}
 
 \begin{table}
-\caption{\label{tab:sequence}Results for sequence models, sorted by
+\caption[Sequence model performance]{\label{tab:sequence}Results for sequence models, sorted by
   Matthews Correlation Coefficient (MCC).}
 \begin{center}
 \begin{tabular}{llllll} \hline
@@ -151,7 +151,7 @@ E1H1   & 812          & 0.81   & 0.83      & 0.82  & 0.61 \\ \hline
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/size-score.eps}
-\caption{\label{fig:size-score} Model Performance (MCC) as a function
+\caption[Model Performance (MCC) as a function of training set size.]{\label{fig:size-score} Model Performance (MCC) as a function
   of training set size. Below ~4,000 rows, performance declines
   sharply, though above this threshold there ceases to be a strong
   correlation between the two.}
@@ -161,7 +161,7 @@ E1H1   & 812          & 0.81   & 0.83      & 0.82  & 0.61 \\ \hline
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/learning-curve.eps}
-\caption{\label{fig:learning-curves} Learning curves for all 20
+\caption[Learning curves for all 20 models.]{\label{fig:learning-curves} Learning curves for all 20
   models. Each model was trained on increasing subsets of the overall
   training set using five-fold cross-validation. Sequence models
   improved with increasing dataset size, suggesting smaller dataset
@@ -179,7 +179,7 @@ To this end, I wanted to explore what would happen if only unique sequences were
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/clustering.eps}
-\caption{\label{fig:clustering} MCC as a function of dataset size for
+\caption[MCC as a function of dataset size for 160 different models.]{\label{fig:clustering} MCC as a function of dataset size for
   160 different models.
   For each of the ten zinc-binding families, we trained a
   classifier on 20\%, 30\%, 40\%, 50\%, 60\%, 70\%, 80\%, 90\% and
@@ -225,7 +225,7 @@ However the models presented here are not intended to be general purpose zinc bi
 methodology --- even for sequences --- rather than individual binding sites. The models are therefore identifying something biologically real (a zinc binding site) rather than something which does not actually exist in isolation (a single zinc binding residue), but which is a useful heuristic in some circumstances.
 
 \begin{table}
-  \caption{\label{tab:genome}Percentage of genome predicted to be zinc
+  \caption[Percentage of genome predicted to be zinc binding by ZincBindPredict for an assortment of bacterial genomes.]{\label{tab:genome}Percentage of genome predicted to be zinc
     binding by ZincBindPredict for an assortment of bacterial
     genomes. Genomes were acquired from ensembl
     \cite{yates2020ensembl} in the form of translated polypeptide
@@ -260,7 +260,7 @@ The ZincBind web interface that was explored in-depth in Chapter 3 also has a pa
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/zbp-mutation.eps}
-\caption{\label{fig:zbp-mutation} A mutation from the ZincBindPredict API. Mutations
+\caption[ZincBindPredict mutation request.]{\label{fig:zbp-mutation} A mutation from the ZincBindPredict API. Mutations
 begin with the mutation identifier to indicate that the top level \texttt{Mutation} object
 is what the \texttt{searchSequence} mutation belongs to --- queries can begin with
 \texttt{query} too but this is optional. Here the sequence is being given as an
@@ -270,7 +270,7 @@ argument, and the ID of the job is returned.}
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/zbp-query.eps}
-\caption{\label{fig:zbp-query} A query for the results of a ZincBindPredict job.
+\caption[ZincBindPredict query request.]{\label{fig:zbp-query} A query for the results of a ZincBindPredict job.
 The ID of the job is supplied, and this particular query requests the status of
 the job, as well the predicted sites. The rejected sites can also be requested,
 but since they are quite numerous, typically the flexibility of GraphQL in allowing
@@ -280,7 +280,7 @@ you to choose to omit them is useful in conserving network resources.}
 \begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{Figures/prediction-interface.eps}
-\caption{\label{fig:prediction-interface} The prediction page on the ZincBind web interface, and an example of a predicted zinc binding site in a protein sequence.}
+\caption[The prediction page on the ZincBind web interface.]{\label{fig:prediction-interface} The prediction page on the ZincBind web interface, and an example of a predicted zinc binding site in a protein sequence.}
 \end{figure}
 
 \section{Conclusion}
