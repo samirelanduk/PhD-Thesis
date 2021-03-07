@@ -124,11 +124,26 @@ Date:\\
 %% ----------------------------------------------------------------
 
 % The Abstract Page
+\chapter{Impact Statement}
+
+This PhD has resulted in the creation of a dedicated database of zinc binding sites (ZincBindDB) and tools for easily accessing it, predictive models for predicting zinc binding sites in proteins (ZincBindPredict), and a novel Python library for analysing protein structures (atomium).
+
+There was previously no such resource for collating zinc binding sites, and so the introduction of one facilitates research into zinc binding sites generally by giving researchers in this field a convenient, centralised repository of the sum of all knowledge of zinc binding sites for which there is structural information - where no such centralised repository existed before. This underpins and supports research into a diverse area of biology. The codebase is also open source and highly extensible, and could be expanded to support other metals as required.
+
+Zinc binding is a property of about 10\% of proteins, and is particularly important in certain enzyme reactions. Knowing whether a protein binds to zinc can offer insights into its function, and knowing precisely where it binds zinc can show the mechanism by which it carries out its intended function, as well as provide suggestions as to how pharmaceutical molecules might disrupt or enhance this function where required for medical interventions. The tools developed here make it easier to computational assess whether a protein binds zinc, and where it does if so - aiding these endeavours.
+
+The newly developed Python library atomium makes studying and analysing protein structures easier for Python programmers, specifically giving them the ability to study higher order assemblies of protein chains called biological assemblies, which was not possible with the existing BioPython library. This makes structural biology research more efficient.
+
+
+\clearpage  % Abstract ended, start a new page
+%% ----------------------------------------------------------------
+
+% The Abstract Page
 \addtotoc{Abstract}  % Add the "Abstract" page entry to the Contents
 \abstract{
 \addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
 
-Zinc is one of the most important biologically active metals. Ten per cent of the human genome is thought to encode a zinc binding protein and its uses encompass catalysis, structural stability, gene expression and immunity. Knowing whether a protein binds to zinc can offer insights into its function, and knowing precisely where it binds zinc can show the mechanism by which it carries out its intended function, as well as provide suggestions as to how pharmaceutical molecules might disrupt or enhance this function where required for medical interventions. At present, there is no specific resource devoted to identifying and presenting all currently known zinc binding sites. This PhD has resulted in the creation of ZincBind --- a database of a database of zinc binding sites (ZincBindDB), predictive models of zinc binding at the family level (ZincBindPredict) and a user-friendly, modern website frontend (ZincBindWeb). Both ZincBindDB and ZincBindPredict are also available as GraphQL APIs. The database of zinc binding sites 38,141 zinc binding sites, and is automatically updated every week. The predictive models, trained using the Random Forest Machine Learning algorithm, all achieve an MCC $\ge$ 0.88, recall $\ge$0.93 and precision $\ge$0.91 for the structural models (mean MCC = 0.97), while the sequence models have MCC $\ge$ 0.64, recall $\ge$0.80 and precision $\ge$0.83 (mean MCC = 0.87), outperforming competing, previous predictive models.
+Zinc is one of the most important biologically active metals. Ten per cent of the human genome is thought to encode a zinc binding protein and its uses encompass catalysis, structural stability, gene expression and immunity. Knowing whether a protein binds to zinc can offer insights into its function, and knowing precisely where it binds zinc can show the mechanism by which it carries out its intended function, as well as provide suggestions as to how pharmaceutical molecules might disrupt or enhance this function where required for medical interventions. At present, there is no specific resource devoted to identifying and presenting all currently known zinc binding sites. This PhD has resulted in the creation of ZincBind --- a database of zinc binding sites (ZincBindDB), predictive models of zinc binding at the family level (ZincBindPredict) and a user-friendly, modern website frontend (ZincBindWeb). Both ZincBindDB and ZincBindPredict are also available as GraphQL APIs. The database of zinc binding sites currently contains 38,141 sites, and is automatically updated every week. The predictive models, trained using the Random Forest Machine Learning algorithm, all achieve an MCC $\ge$ 0.88, recall $\ge$0.93 and precision $\ge$0.91 for the structural models (mean MCC = 0.97), while the sequence models have MCC $\ge$ 0.64, recall $\ge$0.80 and precision $\ge$0.83 (mean MCC = 0.87), outperforming competing, previous predictive models.
 }
 
 \clearpage  % Abstract ended, start a new page
@@ -142,7 +157,7 @@ Zinc is one of the most important biologically active metals. Ten per cent of th
 
 I am enormously grateful to the Wellcome Trust who, in addition to funding the entirety of this PhD and its associated costs, provided considerable assistance and understanding during the COVID pandemic with their prompt, targeted response.
 
-I am greatly indebted to my supervisor, Professor Andrew Martin. Enormously helpful with questions, feedback and guidance at every stage of this project, while still granting me almost complete oversight of the direction and management of the project itself --- I could not have asked for a more well-suited, reliable and domain-knowledgable primary supervisor.
+I am greatly indebted to my supervisor, Professor Andrew Martin. Enormously helpful with questions, feedback and guidance at every stage of this project, while still granting me almost complete oversight of the direction and management of the project itself --- I could not have asked for a friendlier, reliable and domain-knowledgable primary supervisor.
 
 Likewise I am grateful to my second supervisor, Professor Stephen Perkins, and my thesis chair, Professor Christine Orengo, whose feedback and contributions at our many meetings were helpful to the eventual success of the project.
 
