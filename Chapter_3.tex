@@ -1,275 +1,165 @@
 %%%% MACRO DEFINITION %%%%
-
-\providecommand{\pvivax}{P.~vivax}
-\providecommand{\pfalciparum}{P.~falciparum}
-\providecommand{\cterm}{C-terminus}
-\providecommand{\nterm}{N-terminus}
-
-\providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
-\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
-\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
-
-\providecommand{\refimage}[1]{\figurename~\ref{fig:#1}}
-
-%TC:macro \note [ignore]
+% if any ...
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %													BEGIN
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{ZincBind - The Database of Zinc Binding Sites} % Write in your own chapter title
+\chapter{atomium --- The Python Structure Parser} % Write in your own chapter title
 \label{Chapter3}
-\lhead{Chapter 3. \emph{ZincBind - The Database of Zinc Binding Sites}} % Write in your own chapter title to set the page header
+\lhead{Chapter 3. \emph{The Python Structure Parser}} % Write in your own chapter title to set the page header
 
-This project is an attempt to develop novel means of predicting Zinc Binding Sites using the known properties of previously identified Zinc Binding Sites. As such, the initial step was to create a dataset of these already known sites.
+%TC:macro \note [ignore]
 
-This is an undertaking that has been performed previously - several times (see Chapter 1). One of the primary reasons that the effort has been duplicated so many times is because in none of the previous dataset generations did the authors make their data publicly available in an easy-to-use resource. Therefore from the very beginning of this project, the intention was always to not \emph{just} create this dataset of Zinc Binding Sites, but to make this database publicly available via a web resource, that would be continually updated with new sites as they become available.
+% write your code here
+Much of this project relies very heavily on reading in structure data from files deposited to the Protein Data Bank.
 
-This chapter will describe the creation of that dataset, and the web application that offers users access to the data - ZincBind.
+Traditionally these files have been stored and distributed in the form of PDB (.pdb) files. These are text files that consist of a list of records, with each record being limited to 80 characters. Information is stored in these records at fixed offsets from the start of the line. This file format has a number of limitations - most notably the fact that they cannot store more than 100,000 atoms because only five characters are allocated to atom IDs, and so they cannot go past 99,999.
 
-\section{Data Generation}
+Consequently, the Protein Data Bank also provides files in the newer mmCIF (.cif) file format \cite{hall1991mmcif} - and indeed, structures with more than 100,000 atoms are \emph{only} available in this file format.
 
-ZincBind uses as its primary data source the Protein Databank \cite{berman2000pdb}. This contains hundreds of thousands of protein structures, a subset of which contain zinc atoms and which can be inspected to see if a zinc binding site can be identified.
+There are a number of parsers available that can handle these file formats, and which were considered for use in this project - both in Python and otherwise. However, for reasons that will be outlined shortly, it was decided to create a novel Python parser. This parser is called atomium.
 
-The RCSB web services \cite{burley2020pdb} allow a user to query the entire databank by, among other things, the chemical formulae of its small molecules. The PDB IDs of all zinc atom containing structures can therefore be obtained by issuing a request to these web services for a \verb|ChemCompFormulaQuery| with the formula \verb|Zn|.
+\section{Rationale}
 
-If the dataset is being created from scratch, each of these PDB IDs is iterated through in turn to look for zinc binding sites. If the dataset is merely being updated with new structures, only those IDs that don't already exist in the database are used.
+The tool used to read structure files is of such critical importance to this project, that it was important to ensure that the correct tool with the correct \emph{capabilities} was used. Specifically, the tool would need the following properties:
 
-\subsection{Structure Inspection}
+\begin{itemize}
+  \item The ability to read .cif files. Some structures are \emph{only} available in this form as they contain too many atoms to fit in a single .pdb file, so .pdb parsing alone would lead to an incomplete (though still very large) coverage of the available structures.
+  \item The ability to generate biological assemblies from the raw, asymmetric unit coordinates of the file. As will be outlined below, the structure actually described by these files is often not entirely representative of biological reality, and certain transformations must be performed before analysis can be done.
+  \item The ability to extract certain items of descriptive data from the files. In addition to the actual coordinates of the structures' atoms, the files also contain `meta' information about the file, details of the experiment that produced them and the species the molecules came from, quality information such as resolution, and sequence information not obtainable from the model itself (which often contain missing residues). This information was needed to annotate my own database.
+\end{itemize}
 
-The algorithm iterates through each PDB code and for each attempts to determine what zinc binding sites are present, if any, and saves the relevant objects to the database once its analysis is complete.
+Probably the major Python PDB parser at time of writing is BioPython. This is a multi-purpose bioinformatics library, with many modules for dealing with general biological data formats. One of these modules allows for parsing of PDB structure files, and is frequently used in Python analyses of protein structures. However, BioPython's PDB reader does not support the processing of Biological Assemblies - it can only give the user the asymmetric unit as a model. As this project relies on having that functionality as a core part of the parsing process, this makes using BioPython difficult. It does meet the other requirements in that it can parse .cif files and read the metadata, but biological assembly generation is too crucial for the library to be considered.
 
-Each PDB ID is analysed within a single database transaction, meaning that the SQL statements are built up by Django throughout the analysis and then executed all at once at the end of each PDB ID analysis. This has two benefits. Firstly, it makes the whole process much faster - there are database records for each atom in the binding site, so opening up database connections, creating a record, and closing the connection multiple times per structure is much more time consuming than just doing that once at the end. Secondly, and more importantly, if the program is interrupted in the middle of building a database, it will essentially rollback to the last fully processed PDB, rather than saving records for half-processed PDBs which could cause errors when the program is restarted.
+I therefore decided to create a novel Python library for handling biological structures, which would focus solely on structural models (BioPython has many other disparate functions). An additional advantage to doing this was that it gave me a much greater insight into the structure of these files, and of structural biology concepts generally.
 
-The structures are requested from the RCSB web servers in the mmCIF file format. This, and all subsequent structure parsing and analysis, are abstracted into the atomium Python library (see Appendix A).
+\section{Data Structures}
 
-The first processing step with the obtained and parsed structure, is to generate a biological assembly. The raw coordinates of the PDB structure contain the `asymmetric unit', which is often not the way the chains are arranged outside of the crystallisation experiment. Each PDB structure contains a list of possible biological assemblies that can be created from the chains in the asymmetric unit to make a more biologically realistic structure, and each is associated with a list of transformation matrices and calculated metrics. The delta free energy of the assemblies are used to rank them, and the lowest delta free energy assembly that still contains zinc is selected as the `real' biological assembly.
+The object returned by the various parsing functions is a \texttt{File} object. This essentially represents the actual file object itself rather than its structural contents, and has the `meta', descriptive attributes referred to above. Some key attributes are:
 
-This step is critical. While asymmetric units are perfectly suitable if you are merely concerned with intra-chain features, they are often unsuitable for examining the interfaces between chains. Since many zinc binding sites are between chains, relying on asymmetric units would produce data that is not particularly meaningful.
+\begin{itemize}
+  \item \texttt{code} The PDB identifier of the structure.
+  \item \texttt{title} An overall description of the structure.
+  \item \texttt{technique} The experimental procedure used to generate the data, such as X-Ray Diffraction, NMR, etc.
+  \item \texttt{source\_organism} The organism that the molecules were originally derived from. Note that in cases where the file lists multiple species, only the first is used.
+  \item \texttt{expresison\_system} The organism that the molecules were actually expressed in. Again just the first is assigned to this property if there are multiple.
+  \item \texttt{resolution} A measure of structure quality.
+\end{itemize}
 
-However it is important to keep in mind that, necessary though biological assembly generation is, it does introduce some problems. Many assembly instructions are simply to get a subset of the chains in the asymmetric unit, which is fine, but some require copies of chains to be created. For example, a structure that starts out with an A chain and a B chain may in its biological assembly have two A chains and two B chains. As there is no established protocol for generating new IDs for these chains (and since creating one would create inconsistencies with other software that uses the data in the ZincBind database, such as the NGL protein viewer), the solution used here is simply to have multiple chains with the same ID. This can cause a number of problems which will be outlined, along with their solution, as they arise in this section.
+There are many others - the full documentation lists them all.
 
-Once the correct assembly has been generated, the algorithm then checks that the resultant structure is usable, and is not just alpha carbons as some older structures are. If it is such a `skeleton structure', the zinc atom(s) in that structure are saved to the database with an annotation explaining that they don't have a binding site because the PDB was unusable. Note that this is the case whenever a zinc atom is rejected - it is still saved to the database with an explanatory annotation, because by doing this \emph{every} zinc atom in the Protein Data Bank can be accounted for in ZincBind. If this were not done, and a user tried to find a particular zinc atom from the data bank in ZincBind which had not been assigned a binding site, that user would have no way of knowing if the zinc atom was absent because ZincBind had not examined that PDB, or if it was absent because a binding site could not be assigned to it.
+The two most crucial attributes of the root \texttt{File} object are \texttt{model} and \texttt{models}. A \texttt{File} object has one or more \texttt{Model} objects, representing the actual structures themselves, and these are accessible via \texttt{models}. Because most files just contain a single model, the \texttt{model} attribute points to the first \texttt{Model} object as a convenience.
 
-Any zinc atoms that are in the asymmetric unit but not the biological assembly (common in cases where the asymmetric unit is just the biological assembly repeated multiple times) are also saved to the database without a binding site, with an explanatory explanation as to why it has none, for the same reason.
+The must fundamental structural object is the \texttt{Atom}. All structures are ultimately amalgamations of atom objects arranged in space, and all higher structures are just collections of atoms. An \texttt{Atom} object has attributes for its Cartesian coordinates, its element, its unique numeric ID, its name, and various other pieces of information extractable from PDB structures. Even before they are grouped into structures, \texttt{Atom} objects can do various feats based on these simple properties. The mass of an atom can be determined from its element, its distance to or angle with some other atom can be determined using their locations, they can be translated and transformed through space, etc. All of these are performable using methods of the \texttt{Atom} object.
 
-The next step is to actually identify all of the binding sites. This is done as follows:
+Ultimately though, structures are not modeled as mere clouds of atoms - they are grouped into various molecules and other higher order structures. In atomium, the two objects which are direct containers of atoms are \texttt{Residue} and \texttt{Ligand} - the former used when the structure they are part of is part of a chain, and the latter when it isn't. They both have properties for their ID and name, and residues additionally have methods pointing to the next and previous residue in the chain they are part of.
+
+They also both have an attribute which points to their atoms, but these are not stored using a Python built-in object type such as list or set. Instead they are stored in an atomium-specific object called a \texttt{StructureSet}, which is optimised for storing atomium structure objects. In many respects this works very similar to an actual set, but internally the objects are stored as a Python dictionary, where the IDs are keys, and the values are lists of objects with that ID. This makes lookup by ID much, much faster than it would otherwise be which is absolutely crucial in large structures.
+
+Residues themselves are stored in \texttt{Chain} objects. This implements the Python iterable tools, so they have a length, allow access to residues by index, and can be iterated through in \texttt{for} loops. They store their residues in a \texttt{StructureSet}, but they are returned as a tuple.
+
+Both \texttt{Chain} and \texttt{Ligand} inherit from the class \texttt{Molecule}, which in atomium means they are `top-level' structures as far as a model is concerned. That is a model is a collection of chains and ligands. In fact a \texttt{Model} object is initialised by passing in chains and ligands, with the ligands then being divided into water and non-water ligands, as this is often an important distinction.
+
+Models, chains, residues and ligands all inherit from the class \texttt{AtomStructure}. This an abstract base class that any atom-containing class can inherit from, and provides many useful functionalities using those atoms. They allow a structure's mass or charge to be determined by summing the masses or charges of the atoms, allow for translation or rotation of whole structures, the generation of atomic formulae using Python \texttt{Counter} objects, and RMSD (Root Mean Square Deviation --- a measure of how different two structures are in the layout and location of their atoms) comparisons with other structures. The full functionality is in the atomium documentation.
+
+The structure classes also make use of an atomium metaclass called \texttt{StructureClass}. Essentially this confers on any object created from these classes a set of lookup methods, allowing them to search the structures in their StructureSets by any property they might have, or any derivative of those properties. For example, chains can return any residues whose name matches a particular regex pattern, and models can return any atoms with a mass greater than some threshold. Earlier versions of atomuium had these properties manually coded in, but the current metaclass-based implementation ensures that all properties, all derivatives of properties, and any future properties can be instantly and rapidly searched.
+
+These search functionalities always come in both single result (where a single structure or \texttt{None} is returned) and multiple result (where a set of results is returned, even if empty) versions.
+
+Finally, all structures have an awareness of their context. That is to say, all atoms know which residue or ligand they are in, which model they are in, and so on - as do higher structures. This allows for neighbour searching - for example atoms and higher structures can both look for atoms within a certain cutoff and which match certain criteria - useful in, say, a project that relies on identifying binding sites.
+
+\subsection{Distance Optimisation}
+
+While atomium is a general purpose PDB parser, some of its features are of particular significance to this project. An example of this is that of proximity detection, which allows atoms to identify nearby atoms within a cutoff. Higher structures can find nearby higher structures, but ultimately all of this is still relying on atoms searching for nearby atoms. As alluded to earlier, this is of particular importance in this project as a zinc atom's liganding atoms are determined by distance (and element). Any optimisiation that can be done to this process is important therefore.
+
+This process particularly needed optimisation as it is such a significant bottleneck in the generation of the dataset. To identify neartby atoms, an atom gets the full set of atoms in the containing model and iterates through them all, calculating the distance between that atom and itself. Those that fall below the given cutoff are returned. The algorithm which calculates distance is not particularly complex (it is essentially just the Pythagorean equation extended to three dimensions) but when it is performed many times the burden can become considerable as the number of atom distances to calculate inreases with the square of the number of atoms in the structure for every proximity search. In large models with many thousands of atoms, finding an atom's nearby atoms means getting its distance to thousands of thousands of other atoms. For each metal atom in a structure the metal's nearby atoms must be found, and for each binding site, each atom in each liganding residue must also find its nearby atoms to determine stabilising contacts in the secondary shell. Large structures also tend to have many binding sites, meaning that some PDBs would take more than a day to fully process.
+
+To resolve this problem, atomium has been given the ability to speed up this process at the expense of greater memory consumption. An atomium model has a \texttt{optimise\_distances} method which, when called, organises the atoms into a grid. This is implemented using the Python \texttt{defaultdict} data structure, which is a mapping that creates a key if a new key is used, rather than throwing an error. These are nested three-deep so that each of the three dimensions is represented, and all the atoms in a single 10\AA\ cube are stored in one container. Once this grid is created, whenever at atom needs to search its neighbours, it uses its own location to work out which entries in the grid to look up using its own coordinates as keys - and then only searches these. The number of adjacent grid compartments to search is determined by the cutoff being used in the proximity search.
+
+This optimisation can reduce the time taken to process a large PDB by three orders of magnitude.
+
+\section{Parsing}
+
+atomium can read .cif, .mmtf (a compact, stripped-down, binary representation of mmCIF files optimised for transmission over the web), or .pdb files. In each case the overall process is the same.
 
 \begin{enumerate}
-   \item Identify all metals in the structure. This is done using element names in atomium, but it is here that the first biological assembly related awkwardness must be dealt with. When these assemblies are being generated, sometimes atoms end up superimposed on top of each other - so called `special position' atoms. The correct interpretation of this is that there is just one atom here, not multiple occupying the same position in space, so duplicates have to be removed. This is done by taking all atoms of a given element, comparing it with every other atom of that element, and if the distance between is less than 1~{\AA}, one is removed.
-   \item Determine the atoms which ligand each metal in the structure. All atoms within 3~{\AA} of the metal which aren't carbon or hydrogen are determined, and again duplicated atoms must be removed from these using the same algorithm as above (insulin structures for example, often have a chloride ligand which would appear multiple times in the same location otherwise). Once this `cloud' of suitable liganding atoms is obtained, they are ordered by distance to the metal, and for each one a check is made that the angle formed between it, the metal, and any closer atom is not less than 45$^\circ$. If it is, the atom is removed from the set of liganding atoms as it is assumed a coordinate bond would be infeasible if there is another coordinate bond so close.
-   \item Remove metals that probably aren't physiologically relevant. Sometimes a metal atom in a model is just there as a consequence of the crystallisation environment, and while it may interact with one or two residues, those residues might not be a `real' zinc binding site in the sense of being an evolutionarily selected combination of residues there specifically to bind zinc. There is no way to identify with certainty which category a given zinc atom falls into from atom coordinates alone, but ZincBind implements a filter whereby if a metal atom has fewer than three main chain liganding atoms, it is discarded as probably irrelevant. Again, those atoms which are excluded at this stage are given an annotation explaining the reason, if they are zinc atoms.
-   \item Merge the metals into single binding sites where necessary. So far, all metals have been considered in isolation, though in reality some of them may form co-functional units with each other. To determine if this is the case, the residues/ligands that the liganding atoms are part of are examined and, if two metals share a residue/ligand, they are assigned to the same `cluster'.
-   \item Remove non-zinc binding sites. ZincBind is a database of \emph{zinc} binding sites. So far all metals have been considered because some non-zinc atoms may be part of a multi-metal site that contains zinc, so had to be included at every step. However now that the fully processed sites have been generated, those that don't contain zinc can be removed.
-   \item Identify the secondary residues of each of the binding sites. This is the set of all residues which are within 3~{\AA} of a primary liganding residue. These residues are saved, along with the details of which atoms mediate these connections. The importance of second shell residues in stabilising the primary liganding shell has been well documented, so identifying how many of these stabilising contacts exist is important information.
+   \item Get the file contents as a string.
+   \item Determine which filetype it is by looking at file extension or, if not possible, by looking at file contents.
+   \item Convert the filestring to a Python dictionary whose structure is specific to that file type.
+   \item Convert that dictionary to a standard atomium data dictionary, whose structure is the same regardless of the file type origin.
+   \item Convert that data dictionary to an atomium \texttt{File} object with one or more \texttt{File}s within it.
 \end{enumerate}
 
-Now that the zinc binding sites have been identified, they can be saved to the database. Before this is done however, the chain objects are saved to the database, as these records will be needed when the sites are saved. Any chain in the structure with a residue that is part of a binding site is saved. The sequence used is the full canonical sequence listed in the header of the structure file, not the actual sequence of residues in the model, which may contain missing residues (particularly at the ends of the sequence). These two sequences are aligned using the Smith-Waterman global alignment algorithm \cite{smith1981alignment} so that the liganding residues in the model can be identified in the full sequence, and capitalised.
+This process for parsing has a number of advantages over just trying to go from filestring to parsed object in one step. By making the three filetypes converge at one data structure - the atomium data dictionary - it prevents duplication of effort involved in going from `data' to `Python structure'. It also means that every file can have a consistent, dictionary representations, which means that they can all be represented as JSON if desired. It is also easier for testing, as each stage in this (relatively complex) parsing process can more easily be tested in isolation.
 
-\emph{Then} the sites themselves are saved to the database, along with records for any metals, residues, and residue atoms. So-called `Chain-Site Interactions' are also saved, which are essentially chains from the point of view of a particular site. While the plain chain objects saved above have residues involved in any binding site highlighted, here only the residues involved in that particular site are. This is important as chains may be involved in multiple sites, but predictive models need to know which residues contribute to \emph{single} sites.
+\subsection{File Contents and File Type Detection}
 
-\subsection{Equivalent Sites and Families}
+Getting the file contents as a string is a straightforward process - it is simply opened and read using the built in Python functions for that. The process is abstracted into a single function which will first try to read the file as a unicode string (appropriate for .cif and .pdb) and then as binary data (appropriate for .mmtf).
 
-The database as it stands at this point in the algorithm will be a list of zinc binding sites, where each site is considered distinct and separate from all others. This is somewhat misleading, as many proteins appear in the Protein Data Bank several times, and so the binding site(s) in those structures will appear in ZincBind several times. The binding site in (for example) Carbonic Anhydrase will appear in ZincBind many hundreds of times, yet each of these records refer to the same biological unit.
+atomium also enables `fetching' a file from a remote server. Generally this is via HTTP, from the RCSB web servers \note{Cite this!} with a four letter code, though the user can select any URL. The Python library requests \note{Cite somehow} is used for this. Alternatively the user can fetch a file over SSH using a different function.
 
-To account for this, ZincBind clusters binding sites into equivalent sites called `groups'. The first step is to cluster the zinc binding chains that were saved as part of the earlier generation process into clusters on 90\% sequence identity, using the program CD-HIT \cite{li2006cdhit}. It is assumed that chains in a chain cluster are functionally equivalent.
+Once the file contents are extracted as a string (or bytestring), atomium then determines which of the three file types it has been given, so it knows which functions to use to process it further. This is done using a straightforward algorithm - if the file extension is given, this will be used to determine filetype. If not, or if the filetype is not one of the three it recognises (such as .ent for example), atomium will assume it is .mmtf if the data is binary, .cif if it is a unicode string that contains the string \texttt{\_atom\_sites}, and .pdb otherwise.
 
-The binding sites themselves are then clustered using these chain clusters. Two zinc binding sites are assigned to the same cluster if (1) they are associated with the same chain cluster(s), (2) they have the same residue names in the same order, and (3) their surrounding residue names are the same. These latter two steps are important to ensure that chains with two or more zinc binding sites along them don't have those binding sites incorrectly assigned to the same cluster.
+\subsection{File Dictionaries}
 
-A group object is stored in the database for each of these clusters, and the corresponding zinc binding sites are linked with them. Thus ZincBind stores individual zinc binding sites as they occur in the Protein Data Bank, and unique zinc binding sites in the form of groups.
+The next step is to convert this string into a Python dictionary that reflects the internal structure of that file type.
 
-Binding sites and groups form two components of the three-part hierarchy of data in ZincBind, the third being the family. Each binding site is given an alphanumerical code based on its residue content and count --- so, for example, binding sites with three histidine residues are `H3', those with two histidines and two cysteine residues are C2H2, and so on. These make up the `family' that the binding site. Binding sites are clustered into groups, which are in turn clustered into families based on residue content.
+.cif files are essentially a list of connected tables - tables in the sense that each block has a list of headers, and then one or more lists of values that belong to those headers, and connected in the sense that a row may have an ID as its first value which is refered to in another table. atomium represents these tables as lists of dictionaires, where the headers are keys, and the row cells the values. Each of these table lists is a value in the top-level dictionary. \note{This definitely needs a figure or something to show what I'm talking about.} The main bottleneck in this process is splitting values on a single line - they are white-space separated, albeit with whitepsace within quotes ignored, and with both quote types permissable and escapable within the other. Initially the Python library shlex was used to do this splitting, but its speed was just too slow so a custom function was written which was faster - though still the slowest part of the process.
 
-\section{The ZincBind Web Resource}
+.mmtf files are binary encoded Python dictionaries, so once the Python msgpack library has decoded it, it is essentially already in dictionary form. The only extra steps that need to be taken are to decode the .mmtf formatted binary fields within this dictionary, using the algorithms specified in the .mmtf documentation and implemented in atomium.
 
-As already noted, the creation of this dataset was intended to serve both as the primary dataset of this project, and as a publicly available resource. This resource is called ZincBind, and is publicly available.
+.pdb files have much less internal structure than the other two, and are essentially just lists of records. These records can be grouped by record name however, and this is what atomium does - the file dictionary has record names as keys, and lists of records that belong to that record type as values. The only exceptions are \texttt{REMARK} records, which are further grouped by remark number, and all model related records (\texttt{ATOM}, \texttt{TER}, \texttt{HETATM} etc.), which are grouped together because their order relative to each other is information that would be lost of they were split up into record types (\texttt{TER} records separating chains being the main reason).
 
-The database is accessible via a GraphQL API, which allows any specific object, or set of related objects, to be requested in a single HTTP request (see Figure ~\ref{fig:zincbind-api-example}). This is available at \url{api.zincbind.net} and is the primary means of obtaining data from ZincBind in an automated fashion. As outlined in chapter 2, this is created using the Python web framework Django (particularly its Object Relational Management system) and the GraphQL library graphene.
+This resultant file dictionary, whose internal structure is specific to file type, is essentially just a Python representation of the file contents - no `parsing' is done as such, it just gets the information in a form that later processes can understand.
 
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/zincbind-api-example.eps}
-\caption[An example of a ZincBind GraphQL API query.]{\label{fig:zincbind-api-example} An example of a ZincBind GraphQL API query
---- in this case for a \texttt{PDB} object,
-here requesting all the zinc binding sites within that \texttt{PDB} --- there is
-one in this case. In this case the fields \texttt{id} and \texttt{family} are
-requested for each, though they also have other fields.}
-\end{figure}
+\subsection{Data Dictionary}
 
-More accessibly for casual browsing, there is also a website available at \url{zincbind.net}. This is a lightweight web frontend that interacts with the database via the GraphQL API and presents it to the user graphically. It is a responsive, mobile-first layout created with the front-end framework reach, that adapts to different screen sizes.
+This file dictionary is then turned into an atomium `data dictionary'. This is a dictionary with a consistent internal structure regardless of what the original file type was, and essentially consists of a number of sub-dictionaries.
 
-The home page (see Figure ~\ref{fig:zincbind-homepage}) contains a short, clear statement of what ZincBind is (a ``database of zinc binding sites, automatically generated from the Protein Data Bank") as well as a brief overview of its key metrics - number of unique binding sites, total number of binding sites, and the number of PDB files the sites are derived from.
+For example there is the description sub-dictionary, which contains meta information about the file such as title and deposition date. There is an experiment sub-dictionary, with information about how the model was created. The quality sub-dictionary contains resolution and other related information. The geometry sub-dictionary contains transformation matrices, such as those needed to create biological assemblies.
 
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/zincbind-homepage.eps}
-\caption[The home page of ZincBind.]{\label{fig:zincbind-homepage} The home page of ZincBind, showing the
-overview statistics in the top-left, and the quick search text box in the top right.
-The menu bar at the top collapses on small screen widths, making them accessible via a
-drop-down menu on mobile.}
-\end{figure}
+The most important one is `models', which is actually a list of sub-dictionaries. Each one contains informations about the chains, ligands and water molecules in that model, containing all the information needed to create an atomium \texttt{Model}.
 
-Searching of the database can be done in one of four ways. Firstly, from the home page, the user can enter a search term that will be used to search multiple PDB fields at once - title, PDB code, classification etc. This is for users who just want to find entries that have any relation to a given term at all, and provides an easy, low-friction way for a user to submit a search immediately.
+Each of the three file dictionaries have their own functions for extracting information from them and building a data dictionary. In the case of .cif and .mmtf file dictionaries, this is relatively straightforward, as much of the data has already been extracted in the previous step, and this is largely just a question of transfering data from one dictionary to another, and nesting atoms within the right structures.
 
-Secondly, the user can navigate to the Advanced Search page (see Figure ~\ref{fig:zincbind-search}), where they can specify a more precise search by one or more PDB fields. This also allows searching by numeric cutoffs, such as for PDBs below a certain resolution or deposited after a certain date --- essentially any of the PDB metrics that are stored in the database.
+For .pdb files however, the previous step just grouped records, and the data is still locked away within these strings at pre-defined offsets, so for this filetype it is this stage which is the bottleneck, as it takes longer to extract the necessary information.
 
-Thirdly, via this same page they can search for specific binding sites rather than for containing PDBs. The user can pick the same metrics as for PDBs (sites in PDBs below a certain resolution, with a certain classification etc.) as well as site-specific metrics, such as sites of a particular family, or containing particular residues.
+\subsection{Model Generation}
 
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/zincbind-search.eps}
-\caption[The advanced search interface.]{\label{fig:zincbind-search} The advanced search interface, allowing searching of
-PDB files, or individual zinc binding sites.}
-\end{figure}
+The structure of the data dictionary is optimised to make model creation as rapid as possible. The polymers, ligands and water molecules are already segregated as they will be in the model, and all names and IDs are already parsed. Relevant \texttt{Model}, \texttt{Chain}, \texttt{Ligand} etc. molecules are created from this information.
 
-Finally, the user can provide a sequence and BLAST search the database (see Figure ~\ref{fig:zincbind-blast}). This uses the NCBI \texttt{blastp} binary on the backend, whose JSON output is processed by python functions and exposed via the GraphQL API. This produces chain sequence results (see Figure ~\ref{fig:zincbind-blast-results}), rather than PDB/sites as the other methods do.
+The surrounding \texttt{File} object is made from the rest of the data dictionary, with the meta information, with the values of the sub-dictionaries becoming properties of that object. The \texttt{Model} objects exist as a list within that \texttt{File}, with a pointer to the first \texttt{Model} if the user only needs the first.
 
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/zincbind-blast.eps}
-\caption{\label{fig:zincbind-blast} The BLAST search interface.}
-\end{figure}
+Biological assemblies can be created using a \texttt{generate\_assembly} fuction. In earlier versions of atomium, each individual molecule was transformed separately, but in very large structures this can be time consuming. Instead, the copies are created, and then the atoms of all the structures are transformed in one step.
 
-The search results for the first two modes of searching are returned as a list of matching PDBs, with binding sites nested within them. Both the PDB and the sites themselves are clickable and will take the user to the page for that entity. Search results can be sorted by a variety of metrics, and are paginated to 25 results per page (see Figure ~\ref{fig:zincbind-results}).
+\section{Saving}
 
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/zincbind-blast-results.eps}
-\caption{\label{fig:zincbind-blast-results} An example of BLAST search results.}
-\end{figure}
+One of the more unique features of atomium is that it allows changes to models to be made and then for those changes to be saved in \emph{any} of the three file types that atomium supports.
 
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/zincbind-results.eps}
-\caption[An example of paginated search results.]{\label{fig:zincbind-results} An example of paginated (over two pages
-in this case) search result showing matching PDBs, and the zinc binding sites
-they contain.}
-\end{figure}
+Unlike the process of parsing, in which the structures pass through a number of different representations reflecting the different layers of abstraction of that process, saving is much more starightforward. A function takes in an atomium \texttt{AtomStructure} (it doesn't need to be a model, chains etc. can be saved individually) and turns it into the relevant filestring.
 
-PDB pages represent PDB records (see Figure ~\ref{fig:zincbind-pdb}). They provide basic information for that PDB (resolution, r-value, classification, source and expression organisms, experimental tehcnique, deposition date, and keywords --- the latter of which acts as a link to search by any of those keywords), as well as overviews of the zinc content of that PDB. The zincs associated with a binding site are listed as clickable links, while those without a binding site are listed along with their omission reason. Finally, there is a 3D manipulatable view of the PDB with all of its zinc binding sites. This uses the NGL JavaScript library, and beside it is a set of basic options for manipiulating the view, such as rotation options, background colour, and binding site highlighting --- this is in addition to NGL's built-in touch/drag/zoom manipulation. Generally the PDB page limits itself to information relevant to the structure's role as a zinc binding protein, but a link to the equivalent RCSB page is also provided for more information.
+Only structural information is saved - the various file annotations that are parsed from the original files are presumed to be properties solely of those original files, and not of any modified versions of them that might exist. So, atom records are saved, along with anything else needed to construct details of the actual structure model - but not titles, deposition dates, resolution etc.
 
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/zincbind-pdb.eps}
-\caption{\label{fig:zincbind-pdb} An example of a PDB page in ZincBind, showing basic
-information for that PDB. The three-dimensional structure view is further down the page.}
-\end{figure}
+\section{pdb2json}
 
-The binding site pages (see Figure ~\ref{fig:zincbind-site}) contain more detail for that specific binding site, such as its mode of coordination, and links to equivalent sites in the same group. There is also a 3D manipulatable model of the binding site on this page --- this is broadly the same as that on the PDB page, except zoomed in to the specific site and with selectable individual residues and metals. The page also contains a summary of information for the containing PDB, and a link to that PDB's page.
+As already noted, the process of parsing a structure file involves turning the raw filestring (or bytestring) into two successive Python dictionaries, before then being turned into a Python object. Initially this choice of Python dictionary as internal representation was a decision made to make development easier.
 
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/zincbind-site.eps}
-\caption[An example of a binding site page in ZincBind.]{\label{fig:zincbind-site} An example of a binding site page in ZincBind, with the manipulatable
-3D NGL viewer, zoomed in to this binding site.}
-\end{figure}
+However, Python dictionaries have a structure very similar to JSON, a data format that is frequently used for sending data over the web in a very human readable way, as it essentially just nested key-value pairs. It occurred to me, therefore, that atomium was also potentially a tool for turning any PDB structure into JSON, if the data dictionary was simply converted to JSON using Python's built-in \texttt{json} library.
 
-ZincBind also has a page that gives an overview of the dataset as a whole (see Figure ~\ref{fig:zincbind-data}). This contains charts for residue distribution, experimental methods, residue codes, resolution, species frequency, and PDB classification. These are intended to give a sense of the key properties of the database `at a glance'. There are also links to a page containing all data (essentially a modified version of the search results page that shows all PDBs, paginated), a link to an overview of the GraphQL API, and a link to a page showing how the sites are clustered into families and groups. Here each group lists the keywords and classifications that the sites in that group have in common to try and provide an automated way of annotating what the binding site the group represents actually does (see Figure ~\ref{fig:zincbind-group}).
+To this end, I created pdb2json. This is a simple, lightweight Django web app which uses atomium to take any PDB code and return the resultant structure as JSON. This is done using a URL - \texttt{/2SOD/} will return the JSON for the PDB 2SOD, for example.
 
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/zincbind-data.eps}
-\caption{\label{fig:zincbind-data} Overview statistics for the dataset presented on
-the ZincBind data page.}
-\end{figure}
+It is currently available at \texttt{https://pdb2json.samireland.com/}.
 
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/zincbind-group.eps}
-\caption{\label{fig:zincbind-group} A ZincBind group page, summarising the clustered zinc
-binding sites and providing links to individual site pages.}
-\end{figure}
+By default, pdb2json tells atomium to use the .cif representation for parsing, but this can be altered using, for example, \texttt{/2SOD.pdb/}. The structure of the JSON returned will be the same as atomium creates the same data dictionary regardless of file type, but some values might be different. For example, many PDBs have titles etc. in ALL CAPS whereas .cif files use title case, and atom IDs may be numbered slightly different. Generally the actual semantic content should be the same across all file types though.
 
-There is a page dedicated to the prediction of binding sites that uses the seperate prediction API, but this will be covered in greater detail in the next chapter.
+If the user so wishes, they can get the initial Python dictionary as JSON - the one that is specific to that file type - using \texttt{/2SOD/?file} notation. This is generally of limited interest in the case of .pdb and .mmtf, except as a means of checking the original file contents pre-processing, but in the case of .cif it can be very useful. This is because \emph{every} attribute of the structure will be accessible in this dictionary, so if the subset of attributes atomium pulls out of files to annotate its final representation isn't enough, they can be obtained from this representation. For example, atomium File objects have \texttt{rvalue} and \texttt{rwork} attributes, but there are many supporting metrics for these calculations in the original file.
 
-Finally, ZincBind has a help page, structured as a series of questions that a user may have.
+Obviously, PDB structures can be quite large, and some are extremely large indeed. The user may not wish to download the JSON for an entire structure when they only need a single metric or set of metrics. Therefore, pdb2json allows the user to traverse the keys of the JSON structure using the supplied URL. For example, while \texttt{/2SOD/} will return thr JSON for the entire structure, \texttt{/2SOD/quality/} will return only the \texttt{quality} sub-dictionary that was part of the original JSON object. This traversal can be as deep as the user wishes - \texttt{/2SOD/models/0/non-polymer/O.153/atoms/4382} will return information about a single zinc atom, for example.
 
-Ultimately, the website is intended to serve as a way of broadening access to the database, which is continually updated. The API provides access to the data for researchers who need bulk access to the data, whereas the web frontend allows an individual to explore the data more casually to get a sense of what research might be carried out with it.
+Note however that while this will reduce the volume of data that will be sent over the network, on the server the structure is still being fully processed. So this feature can save on bandwidth but not really on request speed.
 
-\section{Data Analysis}
+pdb2json then, is a lightweight web server for providing users with JSON representations of any PDB structure, acting as a thin wrapper around atomium. It was not necessary to the overall project or even to atomium itself, but I felt the ratio of work needed to benefit provided to the wider community was so low that it would be a useful exercise to create. It means that researchers no longer require a PDB parser installed to get basic structural information - just a HTTP client, such as a browser. It is language agnostic - most programming languages will have JSON libraries as part of their standard library, whereas PDB processing libraries like atomium or BioPython are much more specialised pieces of software. And it also means that all structures now have a much more human readable format that is easily viewable.
 
-The finished dataset offers a useful insight into the general properties of zinc binding sites - or at least, that subset of zinc binding sites for which structural information is available. Some of these properties are of use to building predictive models of zinc binding sites, whereas others are of more general interest. An overview of the main findings that can be gleaned from the dataset will be presented here. All values are correct at the time of writing ({\today}), though as this is a continually and automatically updated dataset, the precise values will vary slightly as time goes on. It is not anticipated that these changes will alter the overall conclusions, as the dataset is very large already.
-
-\emph{Note that much of this text has previously appeared in the ZincBind publication from January 2019, though the values have been updated for the updated dataset.}
-
-\subsection{The Prevalence of Zinc}
-
-Of the 174,014 PDB structures in the Protein Data Bank at the time of the most recent database update, 17,556 contained at least one zinc atom and are accounted for in ZincBind. This porportion - 10.1\% - is very close to the 10\% of human proteins usually said to contain zinc, though as the Data Bank does not purport to be representative sampling of any genome, human or otherwise, there was no particular reason for this to be the case.
-
-\subsection{Qualifying Atoms}
-
-In total, when run in January 2021, ZincBind identifies 65,595 zinc atoms and 1,138 other metal atoms associated with zinc atoms when searching the raw coordinates of the PDB asymmetric units. Other metals are only stored in ZincBind if they are part of a multi-metal binding site with at least one zinc atom, so the vast majority of metals in the database are zinc. Of the non-zinc metals, the most common of these `co-active' metals are magnesium, potassium, iron and copper.
-
-Of the 65,595 zinc atoms in the database, 24,246 (37.0\%) are not associated with any binding site, and are in the database solely to acknowledge their existence. The most common reason for not assigning a zinc atom to a binding site is that the atom is duplicated multiple times in the asymmetric unit, but appears only once in the biological assembly used for processing - 13,124 metals were excluded for this reason. For example, PDB entry 1A4L contains four chains, each with one zinc atom, but the biological assembly only uses one. The other three are stored in ZincBind with an omission reason, but have no binding site assigned to them. Figure ~\ref{fig:omission} shows the breakdown of zinc atoms by omission reason.
-
-Using the full biological assembly leads to zinc ions being both excluded, and included as being associated with binding sites. As stated above, it is common for the asymmetric unit of a PDB file to contain multiple copies of the biomolecule of interest as a result of crystallization, but once the `correct' assembly is chosen, these duplicated zinc atoms will be absent from the final structure. Conversely, using the full biological assembly rather than just the raw asymmetric unit coordinates of the PDB is crucial when the zinc atom is present at an interface between chains. In the asymmetric unit, there may be a single residue coordinating with the ion - if symmetry were not considered, such a model would be discarded by the ZincBind algorithm as a salt.
-
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/omission.eps}
-\caption[The relative frequency of omission reasons for zinc
-atoms that were ultimately not assigned to a binding site.]{\label{fig:omission} Illustrating the relative frequency of omission reasons for zinc
-atoms that were ultimately not assigned to a binding site. There were 8 which were omitted because
-the PDB structure did not contain side chains --- insignificant compared with the other two reasons.}
-\end{figure}
-
-\subsection{Zinc Binding Sites with High Representation}
-
-The 42,487 metal atoms, for which binding site information is stored, are part of a total of 38,035 zinc binding sites in ZincBind. After clustering the proteins at 90\% sequence identity and then clustering the binding sites as described above, there are 17,471 unique zinc binding sites in the database. The binding site with the most copies is from carbonic anhydrase (355 copies), a catalytic serum protein and, as already noted, the first known zinc binding protein. This is followed by JMJD2D (247 copies), a lysine-specific demethylase. 11,785 (67.5\%) zinc binding sites are currently unique in that they have only one structure, and are therefore only represented once in ZincBind. The initial distribution is shown in Figure ~\ref{fig:group-clusters}
-
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/group-clusters.eps}
-\caption{\label{fig:group-clusters.eps} The distribution of binding sites among groups for the hundred most populated groups.}
-\end{figure}
-
-For each cluster of equivalent zinc binding sites, the best resolution structure is chosen to provide a single site which is flagged as the `representative' for that cluster.
-
-\subsection{Liganding Residues}
-
-The binding residues that dominate zinc binding sites are well established: cysteine, histidine, and the acidic residues aspartate and glutamate. This is supported by the data in ZincBind. There are a total of 161,324 liganding residues in ZincBind, of which those four residue types, together with water, comprise 93.0\% of all zinc-liganding residues. Note, however, that this considers every binding site in the database. When non-redundant sites are studied (i.e.\ only one site per cluster thereby removing the bias towards more intensely studied proteins), these five comprise a slightly smaller percentage of zinc-liganding residues (92.0\%). This suggests that the binding sites most frequently appearing in the PDB show slightly less variation than a more representative sampling.
-
-The secondary residues, those which contact the primary liganding residues, are also stored in ZincBind and here there is more variation. The most common secondary residue is Glyceine (9.1/%), followed by leucine (7.4\%) and alanine (7.2\%). Broadly speaking, hydrophobic residues tend to be slightly more predominant than hydrophilic residues, which can be seen when the twnety amino acids' hydrophobicities are plotted against their frequency, which shows a correlation coefficient of 0.34 --- a weak but significant link (see Figure ~\ref{fig:secondary-residues}).
-
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/secondary-residues.eps}
-\caption[Correlation between residue hydrophobicity and their frequency as a secondary residue in zinc binding sites]{\label{fig:secondary-residues.eps} There is a weak correlation between residue hydrophobicity and their frequency as a secondary residue in zinc binding sites.}
-\end{figure}
-
-If the primary binding residues' single letter codes are combined to give an overall `signature' of the binding site, C4 (four cysteine residues) is the most prevalent, with 3,069 of the 17,471 unique binding sites having this arrangement of residues (17.6\%) - followed closely by C3H1, with 2149 (12.3\%). That the most common signature makes up just 17.6\% of the total is indicative of the relatively high diversity in such signatures. Between them, the top ten residue signatures account for just 64.4\% of the total.
-
-Of the 24,200 redundant binding sites that contain just one zinc atom, and which come from structures with resolutions better than 3\AA, the most common mode of coordination is via four liganding atoms: 15,077 examples (62.3\%). 5-coordination and 3-coordination have similar prevalences: 4504 (18.6\%) and 1840 (7.6\%) respectively. It is likely that 3-coordination is being over-represented here as in practice many sites which have three liganding atoms in the PDB structure are likely missing a fourth ligand in the form of water, meaning that tetrahedral geometry is probably even more widespread than suggested here.
-
-This same subset of binding sites can be used to investigate liganding atom distances. Nitrogen and sulphur atoms both have characteristic distances with tight distributions: $2.12\pm0.16$\AA\ and $2.34\pm0.12$\AA\ respectively. Oxygen however as a much wider distribution, as it can be provided by either of the carboxylate oxygens of the acidic side chains, or from water, with the angle of these two atoms varying continuously. Its average distance to zinc is $2.29\pm0.22$\AA. Overall the average metal-ligand distance is $2.25\pm0.24$\AA (see Figure ~\ref{fig:atom-distances})
-
-\begin{figure}
-\centering
-\includegraphics[width=1.0\textwidth]{Figures/atom-distances.eps}
-\caption[The distribution of liganding atom distances in all single-zinc sites.]{\label{fig:atom-distances.eps} The distribution of liganding atom
-  distances in all single-zinc sites, with a resolution better than
-  3\AA. The overall distribution can be seen as bimodal, with the
-  first peak being the preferred distance of nitrogen and oxygen, and
-  the second peak being the preferred distance of sulphur, which has a
-  greater Van der Waals radius.  While nitrogen and sulphur both have
-  tight distributions, oxygen does not, and has a much more prominent
-  tail in its distribution.}
-\end{figure}
-
-\subsection{Co-active Binding Sites}
-
-In some cases multiple metals act in concert to form a single functional unit. Such sites are generally referred to as co-active binding sites in the literature (or `co-catalytic' where the site is known to have a catalytic function). Here, such sites are defined as those instances where a single residue is liganded to more than one metal, according to the criteria defined above. The metals are organised into a single site as described in the methods.
-
-In ZincBind, 3976 from the total of 38,035 zinc binding sites (12.7\%) contain multiple metals - 3550 contain two metals, 394 contain three, 22 contain four, two contain five, and eight zinc binding sites contain six metals - though two of these are from a synthetic construct. In some cases these are binding sites with multiple zinc atoms, but in others the zinc is acting in concert with other metals. Potassium is the most common, represented 319 times, followed by iron (188) and copper (155).
-
-These multi-metal sites account for all of the non-zinc metals in the ZincBind database. While the term `co-catalytic' is sometimes used interchangeably with `co-active', only 83.6\% are derived from an enzymatic protein (defined here as a protein name ending in \emph{--ase}). However this compares with just 61.1\% of all zinc-only binding sites that are enzymatic. A Fisher exact test showed the difference to be significant ($p<0.00001$).
-
-\section{Conclusion}
-
-ZincBind is a database of zinc binding sites --- as such it is both a valuable dataset for this PhD, in the sense that it will serve as training data for predictive models of zinc binding (see next chapter), but it is also a useful resource in its own right. It is is publicly accessible, with a modern GraphQL API and responsive website providing access to the data. The data themselves are continuously and automatically updated, and have charactersitics broadly in line with previously observed properties of zinc and other metal binding sites in previous, smaller datasets.
-
-The remainder of this thesis will focus on the dataset's role as a training set for predictive models.
+%%%%%%%%%%%% END %%%%%%%%%%%%
