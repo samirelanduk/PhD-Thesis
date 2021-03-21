@@ -70,6 +70,14 @@ The next step is to actually identify all of the binding sites. This is done as 
    \item Identify the secondary residues of each of the binding sites. This is the set of all residues which are within 3~{\AA} of a primary liganding residue. These residues are saved, along with the details of which atoms mediate these interactions. The importance of second shell residues in stabilising the primary liganding shell has been well documented, so identifying how many of these stabilising contacts exist is important information.
 \end{enumerate}
 
+See Figure~\ref{fig:zincbind-build} for an illustration of this process.
+
+\begin{figure}
+\centering
+\includegraphics[width=1.0\textwidth]{Figures/zincbind-build.eps}
+\caption[The ZincBind build process.]{\label{fig:zincbind-build} An illustration of how the ZincBind build algorithm identifies binding sites. Those with no zinc (top left) or too few liganding atoms (bottom left) are rejected.}
+\end{figure}
+
 Now that the zinc binding sites have been identified, they can be saved to the database. Before this is done however, the chain objects are saved to the database, as these records will be needed when the sites are saved. Any chain in the structure with a residue that is part of a binding site is saved. The sequence used is the full canonical sequence listed in the header of the structure file, not the actual sequence of residues in the model, which may contain missing residues (particularly at the ends of the sequence). These two sequences are aligned using the Smith-Waterman local alignment algorithm \cite{smith1981alignment} so that the liganding residues in the model can be identified in the full sequence, and capitalised.
 
 \emph{Then} the sites themselves are saved to the database, along with records for any metals, residues, and residue atoms. So-called `Chain-Site Interactions' are also saved, which are essentially chains with only a single site annotated within them. While the plain chain objects saved above have residues involved in any binding site highlighted, here only the residues involved in that particular site are. This is important as chains may be involved in multiple sites, but predictive models need to know which residues contribute to \emph{single} sites.
