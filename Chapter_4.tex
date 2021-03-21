@@ -201,7 +201,28 @@ Of the 174,014 PDB structures in the Protein Data Bank at the time of the most r
 
 \subsection{Qualifying Atoms}
 
-In total, when run in Fenruary 2021, ZincBind identified 65,595 zinc atoms and 1,138 other metal atoms associated with zinc atoms when searching the raw coordinates of the PDB asymmetric units. Other metals are only stored in ZincBind if they are part of a multi-metal binding site with at least one zinc atom, so the vast majority of metals in the database are zinc. Of the non-zinc metals, the most common of these `co-active' metals are magnesium, potassium, iron and copper.
+In total, when run in Fenruary 2021, ZincBind identified 65,595 zinc atoms and 1,138 other metal atoms associated with zinc atoms when searching the raw coordinates of the PDB asymmetric units. Other metals are only stored in ZincBind if they are part of a multi-metal binding site with at least one zinc atom, so the vast majority of metals in the database are zinc. Of the non-zinc metals, the most common of these `co-active' metals are magnesium, potassium, iron and copper (see Table~\ref{tab:metalcount}).
+
+\begin{table}
+  \caption{\label{tab:metalcount}Prevalence of various non-zinc metals in ZincBind.}
+\begin{center}
+\begin{tabular}{lll} \hline
+Metal & Count & Relative Percentage  \\ \hline
+Potassium & 319   & 28.0\% \\
+Iron      & 188   & 16.5\% \\
+Copper    & 15    & 13.6\% \\
+Magnesium & 132   & 11.6\% \\
+Sodium    & 100   & 8.8\%  \\ 
+Calcium   & 90    & 7.9\%  \\
+Manganese & 75    & 6.6\%  \\
+Cadmium   & 38    & 3.3\%  \\
+Cobalt    & 31    & 2.7\%  \\
+Nickel    & 6     & 0.5\%  \\
+Vanadium  & 3     & 0.3\%  \\
+Barium    & 1     & 0.1\%  \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
 
 Of the 65,595 zinc atoms in the database, 24,246 (37.0\%) are not associated with any binding site, and are in the database solely to acknowledge their existence. The most common reason for not assigning a zinc atom to a binding site is that the atom is duplicated multiple times in the asymmetric unit, but appears only once in the biological assembly used for processing; 13,124 metals were excluded for this reason. For example, PDB entry 1A4L contains four chains, each with one zinc atom, but the biological assembly only uses one. The other three are stored in ZincBind with an omission reason, but have no binding site assigned to them. Figure~\ref{fig:omission} shows the breakdown of zinc atoms by omission reason.
 
