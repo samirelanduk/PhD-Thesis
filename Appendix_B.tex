@@ -20,6 +20,7 @@ and presenting and manipulating the information contained within. The rationale 
 
 While you can use atomium to create models from scratch to build an entirely \emph{de novo} structure, in practice you would generally use it to load molecular data from an existing file...
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> import atomium
 >>> pdb1 = atomium.open(`../1LOL.pdb')
@@ -29,6 +30,7 @@ While you can use atomium to create models from scratch to build an entirely \em
 >>> pdb2 = atomium.fetch(`5XME.pdb')
 >>> cif2 = atomium.fetch(`5XME')
 \end{verbatim}
+\end{footnotesize}
 
 In that latter case, you don't need the file to be saved locally --- it will just go and grab the PDB with that code from the RCSB.
 
@@ -42,6 +44,7 @@ Once you've got your File object, what can you do with it?
 
 There is meta information contained within the File object:
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> pdb1.title
 `CRYSTAL STRUCTURE OF OROTIDINE MONOPHOSPHATE DECARBOXYLASE COMPLEX WITH XMP'
@@ -60,25 +63,30 @@ datetime.date(2002, 5, 6)
 >>> pdb1.rfree
 0.229
 \end{verbatim}
+\end{footnotesize}
 
 \subsection{Models and Assembly}
 
 All .pdb files contain one or more models --- little universes containing a
 molecular scene.
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> pdb1.model
 <Model (2 chains, 4 ligands)>
 >>> pdb1.models
 (<Model (2 chains, 4 ligands)>,)
 \end{verbatim}
+\end{footnotesize}
 
 Most just contain one --- it's generally those that come from NMR experiments which contain multiple models. You can easily iterate through these to get their individual metrics:
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> for model in pdb2.models:
     print(model.center_of_mass)
 \end{verbatim}
+\end{footnotesize}
 
 This model contains the `asymmetric unit' --- this is one or more protein
 (usually) chains arranged in space, which may not be how the molecule arranges
@@ -93,6 +101,7 @@ are accessed using \texttt{File.assemblies}.
 In practice, what you need to know is that you can create a new model (not the
 one already there containing the asymmetric unit) as follows...
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> pdb3 = atomium.fetch(`1XDA')
 >>> pdb3.model
@@ -108,6 +117,7 @@ ds)>, <Model (12 chains, 24 ligands)>, <Model (6 chains, 12 ligands)>, <Mode
 l (6 chains, 12 ligands)>, <Model (6 chains, 12 ligands)>, <Model (6 chains,
  12 ligands)>, <Model (4 chains, 8 ligands)>, <Model (4 chains, 8 ligands)>]
 \end{verbatim}
+\end{footnotesize}
 
 Here you load a .pdb with multiple possible assemblies, have a quick look at
 the asymmetric unit with 1,842 atoms, and then generate first , and then all,
@@ -117,6 +127,7 @@ of its possible biological assemblies by passing in their IDs.
 
 The basic structures within a model are chains, residues, ligands, and atoms.
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> pdb1.model.chains()
 {<Chain A (204 residues)>, <Chain B (214 residues)>}
@@ -151,6 +162,7 @@ om 3194 (C2)>, <Atom 3195 (C3)>}
 >>> pdb1.model.ligand(name=`BU2').atoms(mass__gt=14)
 {<Atom 3196 (O3)>, <Atom 3193 (O1)>}
 \end{verbatim}
+\end{footnotesize}
 
 
 The examples above demonstrate atomium's selection language. In the case of the
@@ -169,6 +181,7 @@ unique atom pairs in the structure. These can obviously get very big indeed --- 
 
 Structures can be moved around and otherwise compared with each other...
 
+\begin{footnotesize}
 \begin{verbatim}
 pdb1.model.ligand(id=`B:2002').mass
 351.1022
@@ -192,6 +205,7 @@ Counter({`C': 10, `O': 9, `N': 4, `P': 1})
 >>> pdb1.model.ligand(id=`B.2002').rmsd_with(pdb1.model.ligand(id=`A.2001'))
 0.133255572356
 \end{verbatim}
+\end{footnotesize}
 
 Here we look at one of the ligands, identify its mass and molecular formula,
 look at what atoms are within 2.8 \AA of it, and what residues are within
@@ -207,6 +221,7 @@ time a proximity check is made.
 
 The \texttt{Atom} objects themselves have their own useful properties.
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> pdb1.model.atom(97)
 <Atom 97 (CA)>
@@ -229,10 +244,12 @@ False
 >>> pdb1.model.atom(97).chain
 <Chain A (204 residues)>
 \end{verbatim}
+\end{footnotesize}
 
 Chains are a little different from other structures in that they are iterable,
 indexable, and return their residues as a tuple, not a set...
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> pdb1.model.atom(97).chain
 <Chain A (204 residues)>
@@ -250,6 +267,7 @@ ARG (A.14)>, <Residue LEU (A.15)>)
 IPETNEKICRATFKAGADAIIVHGFPGADSVRACLNVAEEMGREVFLLTEMSHPGAEMFIQGAADEIARMGVDLGV
 KNYVGPSTRPERLSRLREIIGQDSFLISPGVGAQGGDPGETLRFADAIIVGRSIYLADNPAAAAAGIIESIKDLLI'
 \end{verbatim}
+\end{footnotesize}
 
 The sequence is
 the `real' sequence that exists in nature. Some of them will be
@@ -258,6 +276,7 @@ missing from the model for practical reasons.
 Residues can generate name information based on their three letter code, and are
 aware of their immediate neighbors.
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> pdb1.model.residue(`A.100')
 <Residue PHE (A.100)>
@@ -272,24 +291,29 @@ aware of their immediate neighbors.
 >>> pdb1.model.residue(`A.100').previous
 <Residue GLY (A.99)>
 \end{verbatim}
+\end{footnotesize}
 
 \section{Saving Data}
 
 A model can be saved to file using:
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> model.save(`new.cif')
 >>> model.save(`new.pdb')
 \end{verbatim}
+\end{footnotesize}
 
 Any structure can be saved in this way, so you can save chains or molecules to
 their own seperate files if you so wish.
 
+\begin{footnotesize}
 \begin{verbatim}
 >>> model.chain(`A').save(`chainA.pdb')
 >>> model.chain(`B').save(`chainB.cif')
 >>> model.ligand(name=`XMP').save(`ligand.mmtf')
 \end{verbatim}
+\end{footnotesize}
 
 Note that if the model you are saving is one from a biological assembly, it will
 likely have many duplicated IDs, so saving to file may create unexpected
