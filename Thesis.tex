@@ -126,6 +126,7 @@ Date:\\
 % The Abstract Page
 \chapter{Impact Statement}
 
+\begin{small}
 This PhD has resulted in the creation of a dedicated database of zinc binding sites (ZincBindDB) and tools for easily accessing it, predictive models for predicting zinc binding sites in proteins (ZincBindPredict), and a novel Python library for analysing protein structures (atomium).
 
 There was previously no such resource for collating zinc binding sites, and so the introduction of one facilitates research into zinc binding sites generally by giving researchers in this field a convenient, centralised repository of the sum of all knowledge of zinc binding sites for which there is structural information - where no such centralised repository existed before. This underpins and supports research into a diverse area of biology. The codebase is also open source and highly extensible, and could be expanded to support other metals as required.
@@ -133,6 +134,7 @@ There was previously no such resource for collating zinc binding sites, and so t
 Zinc binding is a property of about 10\% of proteins, and is particularly important in certain enzyme reactions. Knowing whether a protein binds to zinc can offer insights into its function, and knowing precisely where it binds zinc can show the mechanism by which it carries out its intended function, as well as provide suggestions as to how pharmaceutical molecules might disrupt or enhance this function where required for medical interventions. The tools developed here make it easier to computational assess whether a protein binds zinc, and where it does if so - aiding these endeavours.
 
 The newly developed Python library atomium makes studying and analysing protein structures easier for Python programmers, specifically giving them the ability to study higher order assemblies of protein chains called biological assemblies, which was not possible with the existing BioPython library. This makes structural biology research more efficient.
+\end{small}
 
 
 \clearpage  % Abstract ended, start a new page
@@ -186,6 +188,34 @@ Finally, I am indebted to the countless researchers and technicians who, over th
 %% ----------------------------------------------------------------
 \lhead{\emph{List of Tables}}  % Set the left side page header to "List of Tables"
 \listoftables  % Write out the List of Tables
+
+%% ----------------------------------------------------------------
+
+%% ----------------------------------------------------------------
+\setstretch{1.4}  % Set the line spacing to 1.5, this makes the following tables easier to read
+\clearpage  % Start a new page
+\lhead{\emph{Abbreviations}}  % Set the left side page header to "Abbreviations"
+\listofsymbols{ll}  % Include a list of Abbreviations (a table of two columns)
+{
+
+\textbf{ANN} & \textbf{A}rtificial \textbf{N}eural \textbf{N}etwork \\
+\textbf{API} & \textbf{A}pplication \textbf{P}rogramming \textbf{I}nterface \\
+\textbf{CIF} & \textbf{C}rystallographic \textbf{I}nformation \textbf{F}ile \\
+\textbf{FN} & \textbf{F}alse \textbf{N}egative \\
+\textbf{FP} & \textbf{F}alse \textbf{P}ositive \\
+\textbf{JSON} & \textbf{J}ava\textbf{S}cript \textbf{O}bject \textbf{N}otation \\
+\textbf{MCC} & \textbf{M}atthews \textbf{C}orrelation \textbf{C}oefficient \\
+\textbf{mmCIF} & \textbf{M}acro\textbf{M}olecular \textbf{C}rystallographic \textbf{I}nformation \textbf{F}ile \\
+\textbf{MMTF} & \textbf{M}acro\textbf{M}olecular \textbf{T}ransmission \textbf{F}ormat \\
+\textbf{PDB} & \textbf{P}rotein \textbf{D}ata \textbf{B}ank \\
+\textbf{RF} & \textbf{R}andom \textbf{F}orest \\
+\textbf{SVM} & \textbf{S}upport \textbf{V}ector \textbf{M}achine \\
+\textbf{TN} & \textbf{T}rue \textbf{N}egative \\
+\textbf{TP} & \textbf{T}rue \textbf{P}ositive \\
+\textbf{ZBS} & \textbf{Z}inc \textbf{B}inding \textbf{S}ite \\
+}
+
+
 
 %% ----------------------------------------------------------------
 
