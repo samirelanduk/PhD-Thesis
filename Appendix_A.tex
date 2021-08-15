@@ -22,6 +22,12 @@ The following papers have been published from this PhD:
 
 \emph{5 February 2019}
 
+Sam M Ireland, Andrew C R Martin
+
+GitHub: \url{github.com/samirelanduk/zincbinddb}
+
+Docker: \url{hub.docker.com/r/samirelanduk/zincbinddb_django}
+
 Abstract: Zinc is one of the most important biologically active metals. Ten per cent of the human genome is thought to encode a zinc binding protein and its uses encompass catalysis, structural stability, gene expression and immunity. At present, there is no specific resource devoted to identifying and presenting all currently known zinc binding sites. Here we present ZincBind, a database of zinc binding sites and its web front-end. Using the structural data in the Protein Data Bank, ZincBind identifies every instance of zinc binding to a protein, identifies its binding site and clusters sites based on 90\% sequence identity. There are currently 24 992 binding sites, clustered into 7489 unique sites. The data are available over the web where they can be browsed and downloaded, and via a REST API. ZincBind is regularly updated and will continue to be updated with new data and features.
 
 
@@ -29,12 +35,24 @@ Abstract: Zinc is one of the most important biologically active metals. Ten per 
 
 \emph{11 February 2020}
 
+Sam M Ireland, Andrew C R Martin
+
+GitHub: \url{github.com/samirelanduk/atomium}
+
+Documentation: \url{atomium.bio}
+
 Abstract: Structural biology relies on specific file formats to convey information about macromolecular structures. Traditionally this has been the PDB format, but increasingly newer formats, such as PDBML, mmCIF and MMTF are being used. Here we present atomium, a modern, lightweight, Python library for parsing, manipulating and saving PDB, mmCIF and MMTF file formats. In addition, we provide a web service, pdb2json, which uses atomium to give a consistent JSON representation to the entire Protein Data Bank. atomium is implemented in Python and its performance is equivalent to the existing library BioPython. However, it has significant advantages in features and API design. atomium is available from atomium.bioinf.org.uk and pdb2json can be accessed at pdb2json.bioinf.org.uk.
 
 
 \subsection{Zincbindpredict—Prediction of Zinc Binding Sites in Proteins}
 
 \emph{12 February 2021}
+
+Sam M Ireland, Andrew C R Martin
+
+GitHub: \url{github.com/samirelanduk/zincbindpredict}
+
+Docker: \url{hub.docker.com/r/samirelanduk/zincbindpredict_django}
 
 Abstract: Zinc binding proteins make up a significant proportion of the proteomes of most organisms and, within those proteins, zinc performs rôles in catalysis and structure stabilisation. Identifying the ability to bind zinc in a novel protein can offer insights into its functions and the mechanism by which it carries out those functions. Computational means of doing so are faster than spectroscopic means, allowing for searching at much greater speeds and scales, and thereby guiding complimentary experimental approaches. Typically, computational models of zinc binding predict zinc binding for individual residues rather than as a single binding site, and typically do not distinguish between different classes of binding site—missing crucial properties indicative of zinc binding. Previously, we created ZincBindDB, a continuously updated database of known zinc binding sites, categorised by family (the set of liganding residues). Here, we use this dataset to create ZincBindPredict, a set of machine learning methods to predict the most common zinc binding site families for both structure and sequence. The models all achieve an MCC $\ge$ 0.88, recall $\ge$0.93 and precision $\ge$0.91 for the structural models (mean MCC = 0.97), while the sequence models have MCC $\ge$ 0.64, recall $\ge$0.80 and precision $\ge$0.83 (mean MCC = 0.87), with the models for binding sites containing four liganding residues performing much better than this. The predictors outperform competing zinc binding site predictors and are available online via a web interface and a GraphQL API.
 
